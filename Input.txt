@@ -1,0 +1,19 @@
+# Nodes:
+# Syntax of a node: [X-Position,Y-Position]
+# Nodes are separated by ; or a new line.
+
+[190,60];[170,20];[130,50];[60,30]
+[100,70];[120,140];[160,90]
+
+# Edges:
+# Edges are stored as adjacence matrix of the nodes.
+
+{
+{0,1,0,0,0,0,1}
+{1,0,1,0,0,0,0}
+{0,1,0,0,1,1,0}
+{0,0,0,0,0,1,0}
+{0,0,1,0,0,0,1}
+{0,0,1,1,0,0,1}
+{1,0,0,0,1,1,0}
+}
