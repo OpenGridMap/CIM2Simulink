@@ -104,6 +104,7 @@
 	   	<cim:RegulatingControl.targetValue>1.05</cim:RegulatingControl.targetValue>
 		<cim:IdentifiedObject.name>Voltage Reg G1</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>_R</cim:IdentifiedObject.aliasName>
+        <cim:RegulatingControl.Terminal rdf:resource="#_GEN1C5712A0D2F431594B0638457202CBC"/>
 	   </cim:RegulatingControl>	      
 	<!-- TR1 -->
 	<cim:PowerTransformer rdf:ID="_ID_PowerXfr_TR1">
@@ -181,7 +182,7 @@
 	   </cim:ConnectivityNode>	
 	<!-- B1 -->   
 	<cim:Breaker rdf:ID="_B11ED8476CA04C87AFE0EEABE4C974A7">
-		<cim:Breaker.ratedCurrent>0</cim:Breaker.ratedCurrent>
+		<cim:Switch.ratedCurrent>0</cim:Switch.ratedCurrent>
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Breaker B1</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>B1</cim:IdentifiedObject.aliasName>
@@ -212,7 +213,7 @@
 	   </cim:ConnectivityNode>
 	<!-- B4 -->   
 	<cim:Breaker rdf:ID="_B41ED8476CA04C87AFE0EEABE4C974A7">
-		<cim:Breaker.ratedCurrent>0</cim:Breaker.ratedCurrent>
+		<cim:Switch.ratedCurrent>0</cim:Switch.ratedCurrent>
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Breaker B4</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>B4</cim:IdentifiedObject.aliasName>
@@ -436,7 +437,7 @@
 	   </cim:ConnectivityNode>	
 	<!-- B2 -->   
 	<cim:Breaker rdf:ID="_B21ED8476CA04C87AFE0EEABE4C974A7">
-		<cim:Breaker.ratedCurrent>0</cim:Breaker.ratedCurrent>
+		<cim:Switch.ratedCurrent>0</cim:Switch.ratedCurrent>
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Breaker B2</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>B2</cim:IdentifiedObject.aliasName>
@@ -467,7 +468,7 @@
 	   </cim:ConnectivityNode>	
 	<!-- B3 -->   
 	<cim:Breaker rdf:ID="_B31ED8476CA04C87AFE0EEABE4C974A7">
-		<cim:Breaker.ratedCurrent>0</cim:Breaker.ratedCurrent>
+		<cim:Switch.ratedCurrent>0</cim:Switch.ratedCurrent>
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Breaker B3</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>B3</cim:IdentifiedObject.aliasName>
@@ -498,7 +499,7 @@
 	   </cim:ConnectivityNode>
 	<!-- B6 -->   
 	<cim:Breaker rdf:ID="_B61ED8476CA04C87AFE0EEABE4C974A7">
-		<cim:Breaker.ratedCurrent>0</cim:Breaker.ratedCurrent>
+		<cim:Switch.ratedCurrent>0</cim:Switch.ratedCurrent>
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Breaker B6</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>B6</cim:IdentifiedObject.aliasName>
@@ -729,6 +730,7 @@
 	   	<cim:RegulatingControl.targetValue>1.04</cim:RegulatingControl.targetValue>
 		<cim:IdentifiedObject.name>Voltage Reg G2</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>_R</cim:IdentifiedObject.aliasName>
+        <cim:RegulatingControl.Terminal rdf:resource="#_GEN2C5712A0D2F431594B0638457202CBC"/>
 	   </cim:RegulatingControl>		   
 	<!-- TR2 -->   
 	<cim:PowerTransformer rdf:ID="_ID_PowerXfr_TR2">
@@ -806,7 +808,7 @@
 	   </cim:ConnectivityNode>		
 	<!-- B5 -->   
 	<cim:Breaker rdf:ID="_B51ED8476CA04C87AFE0EEABE4C974A7">
-		<cim:Breaker.ratedCurrent>0</cim:Breaker.ratedCurrent>
+		<cim:Switch.ratedCurrent>0</cim:Switch.ratedCurrent>
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Breaker B5</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>B5</cim:IdentifiedObject.aliasName>
@@ -837,7 +839,7 @@
 	   </cim:ConnectivityNode>	
 	<!-- B7 -->   
 	<cim:Breaker rdf:ID="_B71ED8476CA04C87AFE0EEABE4C974A7">
-		<cim:Breaker.ratedCurrent>0</cim:Breaker.ratedCurrent>
+		<cim:Switch.ratedCurrent>0</cim:Switch.ratedCurrent>
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Breaker B7</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>B7</cim:IdentifiedObject.aliasName>
@@ -1121,13 +1123,4 @@
 		<cim:IdentifiedObject.aliasName>LN3AC_C2</cim:IdentifiedObject.aliasName>
 	  	<cim:ConnectivityNode.ConnectivityNodeContainer rdf:resource="#_ID_SUB3_VLevel_220KV_EF4559BF7EB"/>
 	   </cim:ConnectivityNode>	
-	<!--             -->
-	<!-- Units       -->
-	<!--             -->
-	<cim:Unit rdf:ID="_552837A6A28144EB9ACC0263C658E5DD">
-		<cim:IdentifiedObject.name>MVA</cim:IdentifiedObject.name>
-	</cim:Unit>
-	<cim:Unit rdf:ID="_C31191E137FF4C919CC74DA15D1E170A">
-		<cim:IdentifiedObject.name>kV</cim:IdentifiedObject.name>
-	</cim:Unit>
 </rdf:RDF>
