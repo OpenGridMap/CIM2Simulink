@@ -6,7 +6,7 @@
 %         Last Name:  Krop
 %         E-Mail:     b.krop@gmx.de
 %
-% Last time updated:  28. December 2015
+% Last time updated:  18. January 2016
 
 function createSystem()
 
@@ -34,8 +34,7 @@ function createSystem()
     g_iOffset = 50;
     
     % Check if CIM objects exists.
-    l_cSize = size(g_cObjects);
-    if(l_cSize(1, 1) <= 1)
+    if(size(g_cObjects) <= 1)
         clearvars -except g_dSystem;
         return;
     end
@@ -60,7 +59,7 @@ function createSystem()
     Simulink.defineIntEnumType('FuelType', {'coal', 'gas', 'lignite', 'oil'}, [0, 1, 2, 3]);
     Simulink.defineIntEnumType('GeneratorControlSource', {'unavailable', 'offAGC', 'onAGC', 'plantControl'}, [0, 1, 2, 3]);
     Simulink.defineIntEnumType('ParametersFormType', {'timeConstantReactance', 'equivalentCircuit'}, [0, 1]);
-    Simulink.defineIntEnumType('PhaseCode', {'ABCN', 'ABC', 'ABN', 'ACN', 'BCN', 'AB', 'AC', 'BC', 'AN', 'BN', 'CN', 'A', 'B', 'C', 'N', 's1N', 's2N', 's12N', 's1', 's2', 's12'}, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]);
+    Simulink.defineIntEnumType('PhaseCode', {'A', 'AB', 'ABC', 'ABCN', 'ABN', 'AC', 'ACN', 'AN', 'B', 'BC', 'BCN', 'BN', 'C', 'CN', 'N', 'splitSecondary12N', 'splitSecondary1N', 'splitSecondary2N'}, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]);
     Simulink.defineIntEnumType('PhaseShuntConnectionKind', {'D', 'Y', 'Yn', 'I'}, [0, 1, 2, 3]);
     Simulink.defineIntEnumType('RegulatingControlModeKind', {'activePower', 'admittance', 'currentFlow', 'fixed', 'powerFactor', 'reactivePower', 'temperature', 'timeScheduled', 'voltage'}, [0, 1, 2, 3, 4, 5, 6, 7, 8]);
     Simulink.defineIntEnumType('SynchronousMachineOperatingMode', {'condenser', 'generator'}, [0, 1]);
@@ -71,7 +70,7 @@ function createSystem()
     Simulink.defineIntEnumType('WindingType', {'primary', 'secondary', 'tertiary'}, [0, 1, 2]);
     
     % Create all objects.
-    for g_iIterator = 2:l_cSize(1, 1)
+    for g_iIterator = 1 : size(g_cObjects)
         switch(g_cObjects{g_iIterator, 1})
             case ('ACLineSegment')
                 createACLineSegment();
@@ -118,7 +117,7 @@ function createSystem()
     end % End of for.
     
     % Delete all temporary blocks.
-    for l_iI = 1:size(g_cTemporaryBlocks)
+    for l_iI = 1 : size(g_cTemporaryBlocks)
         delete_block(g_cTemporaryBlocks{l_iI});
     end
     
@@ -174,204 +173,404 @@ function createACLineSegment()
     % Use global variables.
     global g_iIterator g_iHeight g_iWidth g_iOffset g_cObjects g_cBlocks;
     
+    % Attributes in comments are not used in current version.
+    % Attributes of...
+    % ...IdentifiedObject:
+    l_sAliasName = '';
+    l_sDescription = '';
+    l_sName = '';
+    % ...PowerSystemResource:
+    % ...Equipment:
+    %l_sAggregate = 'false';
+    %l_sNormallyInService = 'false';
+    % ...ConductingEquipment:
+    l_sPhases = 'A';
+    % ...Conductor:
+    l_sLength = '0.0';
+    % ...ACLineSegment:
+    %l_sB0ch = '0.0';
+    %l_sBch = '0.0';
+    %l_sG0ch = '0.0';
+    %l_sGch = '0.0';
+    l_sR = '0.0';
+    l_sR0 = '0.0';
+    %l_sX = '0.0';
+    %l_sX0 = '0.0';
+    
     % Parse attributes.
     l_sAttributes = g_cObjects{g_iIterator, 3};
-    l_cAttributes = cell(0);
     
     l_cFind = strfind(l_sAttributes, '>');
+    l_cSize = size(strfind(l_sAttributes, '/'));
+    
+    l_cAttributes = cell(l_cSize(2), 1);
+    l_iI = 1;
+    
     while(size(l_cFind) > 0)
-        if(strcmp(l_sAttributes(l_cFind(1, 1) - 1), '/'))
-            l_cAttributes = cat(1, l_cAttributes, l_sAttributes(1:l_cFind(1, 1)));
-            l_sAttributes = l_sAttributes(l_cFind(1, 1) + 1:end);
+        if(strcmp(l_sAttributes(l_cFind(1) - 1), '/'))
+            l_cAttributes{l_iI} = l_sAttributes(1 : l_cFind(1));
+            l_sAttributes = l_sAttributes(l_cFind(1) + 1 : end);
         else
-            l_cAttributes = cat(1, l_cAttributes, l_sAttributes(1:l_cFind(1, 2)));
-            l_sAttributes = l_sAttributes(l_cFind(1, 2) + 1:end);
+            l_cAttributes{l_iI} = l_sAttributes(1 : l_cFind(2));
+            l_sAttributes = l_sAttributes(l_cFind(2) + 1 : end);
         end
         l_cFind = strfind(l_sAttributes, '>');
+        l_iI = l_iI + 1;
     end
     
-    % Identify attributes.
-    for l_iI = 1:size(l_cAttributes)
+    % Identify attributes of...
+    for l_iI = 1 : size(l_cAttributes)
+        % ...IdentifiedObject:
         l_cFind = strfind(l_cAttributes{l_iI}, 'cim:IdentifiedObject.aliasName');
         if(size(l_cFind) > 0)
-            if(exist('l_sName', 'var'))
-                l_sName = strcat(l_sName, ' (', l_cAttributes{l_iI}(l_cFind(1) + 31:l_cFind(2) - 3), ')');
-            else
-                l_sName = strcat('(', l_cAttributes{l_iI}(l_cFind(1) + 31:l_cFind(2) - 3), ')');
-            end
+            l_sAliasName = l_cAttributes{l_iI}(l_cFind(1) + 31 : l_cFind(2) - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:IdentifiedObject.description');
+        if(size(l_cFind) > 0)
+            l_sDescription = l_cAttributes{l_iI}(l_cFind(1) + 33 : l_cFind(2) - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:IdentifiedObject.DiagramObjects');
+        if(size(l_cFind) > 0)
+            % Currently not used.
+            %l_sDiagramObjects = l_cAttributes{l_iI}(l_cFind(1) + 51 : end - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:IdentifiedObject.ModelingAuthoritySet');
+        if(size(l_cFind) > 0)
+            % Currently not used.
+            %l_sModelingAuthoritySet = l_cAttributes{l_iI}(l_cFind(1) + 57 : end - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:IdentifiedObject.Names');
+        if(size(l_cFind) > 0)
+            % Currently not used.
+            %l_sNames = l_cAttributes{l_iI}(l_cFind(1) + 42 : end - 3);
             continue;
         end
         l_cFind = strfind(l_cAttributes{l_iI}, 'cim:IdentifiedObject.name');
         if(size(l_cFind) > 0)
-            if(exist('l_sName', 'var'))
-                l_sName = strcat(l_cAttributes{l_iI}(l_cFind(1) + 26:l_cFind(2) - 3), ' ', l_sName);
-            else
-                l_sName = l_cAttributes{l_iI}(l_cFind(1) + 26:l_cFind(2) - 3);
-            end
+            l_sName = l_cAttributes{l_iI}(l_cFind(1) + 26 : l_cFind(2) - 3);
+            continue;
+        end
+        % ...PowerSystemResource:
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:PowerSystemResource.Assets');
+        if(size(l_cFind) > 0)
+            % Not used in current version.
+            %l_sAssets = l_cAttributes{l_iI}(l_cFind(1) + 46 : end - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:PowerSystemResource.Block');
+        if(size(l_cFind) > 0)
+            % Not used in current version.
+            %l_sBlock = l_cAttributes{l_iI}(l_cFind(1) + 45 : end - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:PowerSystemResource.ChangeItems');
+        if(size(l_cFind) > 0)
+            % Not used in current version.
+            %l_sChangeItems = l_cAttributes{l_iI}(l_cFind(1) + 51 : end - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:PowerSystemResource.DocumentRoles');
+        if(size(l_cFind) > 0)
+            % Not used in current version.
+            %l_sDocumentRoles = l_cAttributes{l_iI}(l_cFind(1) + 53 : end - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:PowerSystemResource.ErpOrganisationRoles');
+        if(size(l_cFind) > 0)
+            % Not used in current version.
+            %l_sErpOrganisationRoles = l_cAttributes{l_iI}(l_cFind(1) + 60 : end - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:PowerSystemResource.Location');
+        if(size(l_cFind) > 0)
+            % Not used in current version.
+            %l_sLocation = l_cAttributes{l_iI}(l_cFind(1) + 48 : end - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:PowerSystemResource.Measurements');
+        if(size(l_cFind) > 0)
+            % Not used in current version.
+            %l_sMeasurements = l_cAttributes{l_iI}(l_cFind(1) + 52 : end - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:PowerSystemResource.NetworkDataSets');
+        if(size(l_cFind) > 0)
+            % Not used in current version.
+            %l_sNetworkDataSets = l_cAttributes{l_iI}(l_cFind(1) + 55 : end - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:PowerSystemResource.OperatingShare');
+        if(size(l_cFind) > 0)
+            % Not used in current version.
+            %l_sOperatingShare = l_cAttributes{l_iI}(l_cFind(1) + 54 : end - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:PowerSystemResource.OutageSchedule');
+        if(size(l_cFind) > 0)
+            % Not used in current version.
+            %l_sOutageSchedule = l_cAttributes{l_iI}(l_cFind(1) + 54 : end - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:PowerSystemResource.PSREvent');
+        if(size(l_cFind) > 0)
+            % Not used in current version.
+            %l_sPSREvent = l_cAttributes{l_iI}(l_cFind(1) + 48 : end - 3);
             continue;
         end
         l_cFind = strfind(l_cAttributes{l_iI}, 'cim:PowerSystemResource.PSRType');
         if(size(l_cFind) > 0)
-            l_sPSRType = l_cAttributes{l_iI}(l_cFind(1) + 47:end - 3);
+            % Not used in current version.
+            %l_sPSRType = l_cAttributes{l_iI}(l_cFind(1) + 47 : end - 3);
             continue;
         end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:PowerSystemResource.PsrLists');
+        if(size(l_cFind) > 0)
+            % Not used in current version.
+            %l_sPsrLists = l_cAttributes{l_iI}(l_cFind(1) + 48 : end - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:PowerSystemResource.ReportingGroup');
+        if(size(l_cFind) > 0)
+            % Not used in current version.
+            %l_sReportingGroup = l_cAttributes{l_iI}(l_cFind(1) + 54 : end - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:PowerSystemResource.SafetyDocuments');
+        if(size(l_cFind) > 0)
+            % Not used in current version.
+            %l_sSafetyDocuments = l_cAttributes{l_iI}(l_cFind(1) + 55 : end - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:PowerSystemResource.ScheduleSteps');
+        if(size(l_cFind) > 0)
+            % Not used in current version.
+            %l_sScheduleSteps = l_cAttributes{l_iI}(l_cFind(1) + 53 : end - 3);
+            continue;
+        end
+        % ...Equipment:
         l_cFind = strfind(l_cAttributes{l_iI}, 'cim:Equipment.aggregate');
         if(size(l_cFind) > 0)
-            l_sAggregate = strcat('Boolean.', l_cAttributes{l_iI}(l_cFind(1) + 24:l_cFind(2) - 3));
+            % Not used in current version.
+            %l_sAggregate = l_cAttributes{l_iI}(l_cFind(1) + 24 : l_cFind(2) - 3);
             continue;
         end
-        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:Equipment.MemberOf_EquipmentContainer');
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:Equipment.ContingencyEquipment');
         if(size(l_cFind) > 0)
-            l_sMemberOf_EquipmentContainer = l_cAttributes{l_iI}(l_cFind(1) + 57:end - 3);
+            % Not used in current version.
+            %l_sContingencyEquipment = l_cAttributes{l_iI}(l_cFind(1) + 50 : end - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:Equipment.CustomerAgreements');
+        if(size(l_cFind) > 0)
+            % Not used in current version.
+            %l_sCustomerAgreements = l_cAttributes{l_iI}(l_cFind(1) + 48 : end - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:Equipment.EquipmentContainer');
+        if(size(l_cFind) > 0)
+            l_sEquipmentContainer = l_cAttributes{l_iI}(l_cFind(1) + 48 : end - 3);
             continue;
         end
         l_cFind = strfind(l_cAttributes{l_iI}, 'cim:Equipment.normallyInService');
         if(size(l_cFind) > 0)
-            l_sNormallyInService = strcat('Boolean.', l_cAttributes{l_iI}(l_cFind(1) + 32:l_cFind(2) - 3));
+            % Not used in current version.
+            %l_sNormallyInService = l_cAttributes{l_iI}(l_cFind(1) + 32 : l_cFind(2) - 3);
             continue;
         end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:Equipment.OperationalLimitSet');
+        if(size(l_cFind) > 0)
+            % Not used in current version.
+            %l_sOperationalLimitSet = l_cAttributes{l_iI}(l_cFind(1) + 49 : end - 3);
+            continue;
+        end
+        % ...ConductingEquipment:
         l_cFind = strfind(l_cAttributes{l_iI}, 'cim:ConductingEquipment.BaseVoltage');
         if(size(l_cFind) > 0)
-            l_sBaseVoltage = l_cAttributes{l_iI}(l_cFind(1) + 51:end - 3);
+            l_sBaseVoltage = l_cAttributes{l_iI}(l_cFind(1) + 51 : end - 3);
             continue;
         end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:ConductingEquipment.ClearanceTags');
+        if(size(l_cFind) > 0)
+            % Not used in current version.
+            %l_sClearanceTags = l_cAttributes{l_iI}(l_cFind(1) + 53 : end - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:ConductingEquipment.OutageStepRoles');
+        if(size(l_cFind) > 0)
+            % Not used in current version.
+            %l_sOutageStepRoles = l_cAttributes{l_iI}(l_cFind(1) + 55 : end - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:ConductingEquipment.phases');
+        if(size(l_cFind) > 0)
+            l_cFind = strfind(l_cAttributes{l_iI}, '#');
+            l_sPhases = l_cAttributes{l_iI}(l_cFind(1) + 1 : end - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:ConductingEquipment.ProtectionEquipments');
+        if(size(l_cFind) > 0)
+            % Not used in current version.
+            %l_sProtectionEquipments = l_cAttributes{l_iI}(l_cFind(1) + 60 : end - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:ConductingEquipment.SvStatus');
+        if(size(l_cFind) > 0)
+            % Not used in current version.
+            %l_sSvStatus = l_cAttributes{l_iI}(l_cFind(1) + 48 : end - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:ConductingEquipment.Terminals');
+        if(size(l_cFind) > 0)
+            l_sTerminals = l_cAttributes{l_iI}(l_cFind(1) + 49 : end - 3);
+            continue;
+        end
+        % ...Conductor:
         l_cFind = strfind(l_cAttributes{l_iI}, 'cim:Conductor.length');
         if(size(l_cFind) > 0)
-            l_sLength = l_cAttributes{l_iI}(l_cFind(1) + 21:l_cFind(2) - 3);
+            l_sLength = l_cAttributes{l_iI}(l_cFind(1) + 21 : l_cFind(2) - 3);
             continue;
         end
+        % ...ACLineSegment:
         l_cFind = strfind(l_cAttributes{l_iI}, 'cim:ACLineSegment.b0ch');
         if(size(l_cFind) > 0)
-            l_sB0ch = l_cAttributes{l_iI}(l_cFind(1) + 23:l_cFind(2) - 3);
+            % Not used in current version.
+            %l_sB0ch = l_cAttributes{l_iI}(l_cFind(1) + 23 : l_cFind(2) - 3);
             continue;
         end
         l_cFind = strfind(l_cAttributes{l_iI}, 'cim:ACLineSegment.bch');
         if(size(l_cFind) > 0)
-            l_sBch = l_cAttributes{l_iI}(l_cFind(1) + 22:l_cFind(2) - 3);
+            % Not used in current version.
+            %l_sBch = l_cAttributes{l_iI}(l_cFind(1) + 22 : l_cFind(2) - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:ACLineSegment.Clamp');
+        if(size(l_cFind) > 0)
+            % Not used in current version.
+            %l_sClamp = l_cAttributes{l_iI}(l_cFind(1) + 39 : end - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:ACLineSegment.ConductorAssets');
+        if(size(l_cFind) > 0)
+            % Not used in current version.
+            %l_sConductorAssets = l_cAttributes{l_iI}(l_cFind(1) + 49 : end - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:ACLineSegment.ConductorInfo');
+        if(size(l_cFind) > 0)
+            % Not used in current version.
+            %l_sConductorInfo = l_cAttributes{l_iI}(l_cFind(1) + 47 : end - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:ACLineSegment.Cut');
+        if(size(l_cFind) > 0)
+            % Not used in current version.
+            %l_sCut = l_cAttributes{l_iI}(l_cFind(1) + 37 : end - 3);
             continue;
         end
         l_cFind = strfind(l_cAttributes{l_iI}, 'cim:ACLineSegment.g0ch');
         if(size(l_cFind) > 0)
-            l_sG0ch = l_cAttributes{l_iI}(l_cFind(1) + 23:l_cFind(2) - 3);
+            % Not used in current version.
+            %l_sG0ch = l_cAttributes{l_iI}(l_cFind(1) + 23 : l_cFind(2) - 3);
             continue;
         end
         l_cFind = strfind(l_cAttributes{l_iI}, 'cim:ACLineSegment.gch');
         if(size(l_cFind) > 0)
-            l_sGch = l_cAttributes{l_iI}(l_cFind(1) + 22:l_cFind(2) - 3);
+            % Not use in current version.
+            %l_sGch = l_cAttributes{l_iI}(l_cFind(1) + 22 : l_cFind(2) - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:ACLineSegment.PhaseImpedance');
+        if(size(l_cFind) > 0)
+            % Not used in current version.
+            %l_sPhaseImpedance = l_cAttributes{l_iI}(l_cFind(1) + 48 : end - 3);
             continue;
         end
         l_cFind = strfind(l_cAttributes{l_iI}, 'cim:ACLineSegment.r0');
         if(size(l_cFind) > 0)
-            l_sR0 = l_cAttributes{l_iI}(l_cFind(1) + 21:l_cFind(2) - 3);
+            l_sR0 = l_cAttributes{l_iI}(l_cFind(1) + 21 : l_cFind(2) - 3);
             continue;
         end
         l_cFind = strfind(l_cAttributes{l_iI}, 'cim:ACLineSegment.r');
         if(size(l_cFind) > 0)
-            l_sR = l_cAttributes{l_iI}(l_cFind(1) + 20:l_cFind(2) - 3);
+            l_sR = l_cAttributes{l_iI}(l_cFind(1) + 20 : l_cFind(2) - 3);
+            continue;
+        end
+        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:ACLineSegment.SequenceImpedance');
+        if(size(l_cFind) > 0)
+            % Not used in current version.
+            %l_sSequenceImpedance = l_cAttributes{l_iI}(l_cFind(1) + 51 : end - 3);
             continue;
         end
         l_cFind = strfind(l_cAttributes{l_iI}, 'cim:ACLineSegment.x0');
         if(size(l_cFind) > 0)
-            l_sX0 = l_cAttributes{l_iI}(l_cFind(1) + 21:l_cFind(2) - 3);
+            % Not used in current version.
+            %l_sX0 = l_cAttributes{l_iI}(l_cFind(1) + 21 : l_cFind(2) - 3);
             continue;
         end
         l_cFind = strfind(l_cAttributes{l_iI}, 'cim:ACLineSegment.x');
         if(size(l_cFind) > 0)
-            l_sX = l_cAttributes{l_iI}(l_cFind(1) + 20:l_cFind(2) - 3);
+            % Not used in current version.
+            %l_sX = l_cAttributes{l_iI}(l_cFind(1) + 20 : l_cFind(2) - 3);
             continue;
         end
-        l_cFind = strfind(l_cAttributes{l_iI}, 'cim:ACLineSegment.PerLengthImpedance');
-        if(size(l_cFind) > 0)
-            l_sPerLengthImpedance = l_cAttributes{l_iI}(l_cFind(1) + 52:end - 3);
-            continue;
-        end
-        warning('Could not identify attribute for ACLineSegment! (RDF-ID: %s)', g_cObjects{g_iIterator,2});
+        warning('Could not identify attribute for ACLineSegment! (RDF-ID: %s)', g_cObjects{g_iIterator, 2});
     end % End of for.
     
     % Create this ACLineSegment.
+    l_iBlocks = 0;
     
-    % Every ACLineSegment must be contained by an
-    % EquipmentContainer. If 
-    % Equipment.MemberOf_EquipmentContainer doesn't exist, this
-    % ACLineSegment cannot be created.
-    if(~exist('l_sMemberOf_EquipmentContainer', 'var'))
-        warning('Could not create ACLineSegment, because EquipmentContainer is missing! (RDF-ID: %s)', g_cObjects{g_iIterator,2});
+    % Every ACLineSegment must be contained by an EquipmentContainer. If
+    % Equipment.EquipmentContainer doesn't exist, this ACLineSegment cannot
+    % be created.
+    if(~exist('l_sEquipmentContainer', 'var'))
+        warning('Could not create ACLineSegment, because EquipmentContainer is missing! (RDF-ID: %s)', g_cObjects{g_iIterator, 2});
         return;
     end
-    for l_iI = 1:size(g_cBlocks)
-        if(strcmp(g_cBlocks{l_iI, 1}, l_sMemberOf_EquipmentContainer))
+    for l_iI = 1 : size(g_cBlocks)
+        if(strcmp(g_cBlocks{l_iI, 1}, l_sEquipmentContainer))
             l_sParent = strcat(g_cBlocks{l_iI, 3}, '/', g_cBlocks{l_iI, 2});
             break;
         end
     end
     if(~exist('l_sParent', 'var'))
-        warning('Could not create ACLineSegment, because could not find EquipmentContainer! (RDF-ID: %s)', g_cObjects{g_iIterator,2});
+        warning('Could not create ACLineSegment, because could not find EquipmentContainer! (RDF-ID: %s)', g_cObjects{g_iIterator, 2});
         return;
     end
     % The name of the block in following format: IdentifiedObject.name
     % (IdentifiedObject.aliasName). If both variables don't exist, it is
     % the name of the class, followed by the value of 'g_iIterator'.
-    if(~exist('l_sName', 'var'))
+    l_sName = strcat(l_sName, '(', l_sAliasName, ')');
+    if(strcmp(l_sName, '()'))
         l_sName = strcat('ACLineSegment', g_iIterator);
     end
-    % Now, this ACLineSegment can be created. Because it contains
-    % severel Blocks, it is a Subsystem.
+    % Now, the Subsystem for this ACLineSegment and the ACLineSegment
+    % itself can be created.
     l_cPos = getPositionIndex(g_cBlocks{l_iI, 4});
     l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
     l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
     l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
     add_block('built-in/Subsystem', strcat(l_sParent, '/', l_sName), 'Position', l_aPosition);
-    % The PSRType, this ACLineSegment is connected with. It is
-    % assumed, that the PSRType already exists, if
-    % PowerSystemResource.PSRType exists.
-    if(exist('l_sPSRType', 'var'))
-        for l_iJ = 1:size(g_cBlocks)
-            if(strcmp(g_cBlocks{l_iJ, 1}, l_sPSRType))
-                l_sPSRT = strcat(g_cBlocks{l_iJ, 3}, g_cBlocks{l_iJ, 2});
-                break;
-            end
-        end
-        if(exist('l_sPSRT', 'var'))
-            % TODO: Implement creation of PSRType.
-            % TODO: Connect the found PSRType with this ACLineSegment.
-            warning('Connections from ACLineSegments to PSRTypes are currently not implemented!');
-        else
-            warning('Could not find PSRType, belonging to RDF-Resource, for ACLineSegment! (RDF-ID: %s)', g_cObjects{g_iIterator, 2});
-        end
-    end
-    % The Equipment.aggregate indicates, whether this ACLineSegment is
-    % modeled together as an aggregate.
-    l_cPos = getPositionIndex(0);
+    l_cPos = getPositionIndex(l_iBlocks);
     l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
     l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
     l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
-    add_block('simulink/Sources/Enumerated Constant', strcat(l_sParent, '/', l_sName, '/aggregate'), 'Position', l_aPosition);
-    if(exist('l_sAggregate', 'var'))
-        set_param(strcat(l_sParent, '/', l_sName, '/aggregate'), 'OutDataTypeStr', 'Enum: Boolean', 'Value', l_sAggregate);
-    else
-        set_param(strcat(l_sParent, '/', l_sName, '/aggregate'), 'OutDataTypeStr', 'Enum: Boolean', 'Value', 'Boolean.false');
-    end
-    % The Equipment.normallyInService indicates, whether this
-    % ACLineSegment is normally in service.
-    l_cPos = getPositionIndex(1);
-    l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
-    l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
-    l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
-    add_block('simulink/Sources/Enumerated Constant', strcat(l_sParent, '/', l_sName, '/normallyInService'), 'Position', l_aPosition);
-    if(exist('l_sNormallyInService', 'var'))
-        set_param(strcat(l_sParent, '/', l_sName, '/normallyInService'), 'OutDataTypeStr', 'Enum: Boolean', 'Value', l_sNormallyInService);
-    else
-        set_param(strcat(l_sParent, '/', l_sName, '/normallyInService'), 'OutDataTypeStr', 'Enum: Boolean', 'Value', 'Boolean.true');
-    end
-    % The BaseVoltage for this ACLineSegment. If
-    % ConductingEquipment.BaseVoltage does not exist, a default BaseVoltage
-    % will be created.
-    l_cPos = getPositionIndex(2);
+    add_block('powerlib/Elements/Distributed Parameters Line', strcat(l_sParent, '/', l_sName, '/Distributed Parameters Line'), 'Position', l_aPosition);
+    l_iBlocks = l_iBlocks + 1;
+    % IdentifiedObject.description: The description of this ACLineSegment.
+    set_param(strcat(l_sParent, '/', l_sName), 'Description', l_sDescription);
+    % ConductingEquipment.BaseVoltage: The BaseVoltage for this
+    % ACLineSegment. If ConductingEquipment.BaseVoltage does not exist, a
+    % warning will be thrown.
+    l_cPos = getPositionIndex(l_iBlocks);
     l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
     l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
     l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
     if(exist('l_sBaseVoltage', 'var'))
-        for l_iJ = 1:size(g_cBlocks)
+        for l_iJ = 1 : size(g_cBlocks)
             if(strcmp(g_cBlocks{l_iJ, 1}, l_sBaseVoltage))
                 l_sBV = strcat(g_cBlocks{l_iJ, 3}, '/', g_cBlocks{l_iJ, 2});
                 break;
@@ -379,115 +578,72 @@ function createACLineSegment()
         end
         if(exist('l_sBV', 'var'))
             add_block(l_sBV, strcat(l_sParent, '/', l_sName, '/', g_cBlocks{l_iJ, 2}), 'Position', l_aPosition);
+            l_iBlocks = l_iBlocks + 1;
         else
-            add_block('fl_lib/Electrical/Electrical Sources/AC Voltage Source', strcat(l_sParent, '/', l_sName, '/BaseVoltage'), 'Position', l_aPosition);
+            warning('Could not find BaseVoltage for ACLineSegment! (RDF-ID: %s)', g_cObjects{g_iIterator, 2});
         end
     else
-        add_block('fl_lib/Electrical/Electrical Sources/AC Voltage Source', strcat(l_sParent, '/', l_sName, '/BaseVoltage'), 'Position', l_aPosition);
+        warning('BaseVoltage for ACLineSegment is missing! (RDF-ID: %s)', g_cObjects{g_iIterator, 2});
     end
-    % Conductor.length
-    l_cPos = getPositionIndex(3);
-    l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
-    l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
-    l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
-    add_block('built-in/Constant', strcat(l_sParent, '/', l_sName, '/length'), 'Position', l_aPosition);
-    if(exist('l_sLength', 'var'))
-        set_param(strcat(l_sParent, '/', l_sName, '/length'), 'Value', l_sLength);
+    % ConductingEquipment.phases: The carried phases of this ACLineSegment.
+    switch(l_sPhases)
+        case ('A')
+            set_param(strcat(l_sParent, '/', l_sName, '/Distributed Parameters Line'), 'Phases', '1');
+        case ('AB')
+            set_param(strcat(l_sParent, '/', l_sName, '/Distributed Parameters Line'), 'Phases', '2');
+        case ('ABC')
+            set_param(strcat(l_sParent, '/', l_sName, '/Distributed Parameters Line'), 'Phases', '3');
+        case ('ABCN')
+            set_param(strcat(l_sParent, '/', l_sName, '/Distributed Parameters Line'), 'Phases', '3');
+        case ('ABN')
+            set_param(strcat(l_sParent, '/', l_sName, '/Distributed Parameters Line'), 'Phases', '2');
+        case ('AC')
+            set_param(strcat(l_sParent, '/', l_sName, '/Distributed Parameters Line'), 'Phases', '2');
+        case ('ACN')
+            set_param(strcat(l_sParent, '/', l_sName, '/Distributed Parameters Line'), 'Phases', '2');
+        case ('AN')
+            set_param(strcat(l_sParent, '/', l_sName, '/Distributed Parameters Line'), 'Phases', '1');
+        case ('B')
+            set_param(strcat(l_sParent, '/', l_sName, '/Distributed Parameters Line'), 'Phases', '1');
+        case ('BC')
+            set_param(strcat(l_sParent, '/', l_sName, '/Distributed Parameters Line'), 'Phases', '2');
+        case ('BCN')
+            set_param(strcat(l_sParent, '/', l_sName, '/Distributed Parameters Line'), 'Phases', '2');
+        case ('BN')
+            set_param(strcat(l_sParent, '/', l_sName, '/Distributed Parameters Line'), 'Phases', '1');
+        case ('C')
+            set_param(strcat(l_sParent, '/', l_sName, '/Distributed Parameters Line'), 'Phases', '1');
+        case ('CN')
+            set_param(strcat(l_sParent, '/', l_sName, '/Distributed Parameters Line'), 'Phases', '1');
+        case ('splitSecondary12N')
+            set_param(strcat(l_sParent, '/', l_sName, '/Distributed Parameters Line'), 'Phases', '2');
+        case ('splitSecondary1N')
+            set_param(strcat(l_sParent, '/', l_sName, '/Distributed Parameters Line'), 'Phases', '1');
+        case ('splitSecondary2N')
+            set_param(strcat(l_sParent, '/', l_sName, '/Distributed Parameters Line'), 'Phases', '1');
+        otherwise
+            warning('Could not identify PhaseCode for ACLineSegment! (RDF-ID: %s)', g_cObjects{g_iIterator, 2});
     end
-    % ACLineSegment.b0ch
-    l_cPos = getPositionIndex(4);
-    l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
-    l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
-    l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
-    add_block('built-in/Constant', strcat(l_sParent, '/', l_sName, '/b0ch'), 'Position', l_aPosition);
-    if(exist('l_sB0ch', 'var'))
-        set_param(strcat(l_sParent, '/', l_sName, '/b0ch'), 'Value', l_sB0ch);
+    % ConductingEquipment.Terminals: Every ACLineSegment has 1 or 2
+    % Terminals.
+    % TODO: Parse and use the attribute.
+    % Conductor.length: The segment length (in m) for calculating line
+    % section capabilities. It will converted into km.
+    l_sLength = num2str(str2double(l_sLength) / 1000.0);
+    set_param(strcat(l_sParent, '/', l_sName, '/Distributed Parameters Line'), 'Length', l_sLength);
+    % ACLineSegment.r, ACLineSegment.r0: The positive and zero resistance
+    % of the entire line segment. In Simulink, resistance / km is needed.
+    % Therefore the resistances will devided through the length.
+    if(str2double(l_sLength) ~= 0)
+        l_sR = num2str(str2double(l_sR) / str2double(l_sLength));
+        l_sR0 = num2str(str2double(l_sR0) / str2double(l_sLength));
     end
-    % ACLineSegment.bch
-    l_cPos = getPositionIndex(5);
-    l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
-    l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
-    l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
-    add_block('built-in/Constant', strcat(l_sParent, '/', l_sName, '/bch'), 'Position', l_aPosition);
-    if(exist('l_sBch', 'var'))
-        set_param(strcat(l_sParent, '/', l_sName, '/bch'), 'Value', l_sBch);
-    end
-    % ACLineSegment.g0ch
-    l_cPos = getPositionIndex(6);
-    l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
-    l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
-    l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
-    add_block('built-in/Constant', strcat(l_sParent, '/', l_sName, '/g0ch'), 'Position', l_aPosition);
-    if(exist('l_sG0ch', 'var'))
-        set_param(strcat(l_sParent, '/', l_sName, '/g0ch'), 'Value', l_sG0ch);
-    end
-    % ACLineSegment.gch
-    l_cPos = getPositionIndex(7);
-    l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
-    l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
-    l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
-    add_block('built-in/Constant', strcat(l_sParent, '/', l_sName, '/gch'), 'Position', l_aPosition);
-    if(exist('l_sGch', 'var'))
-        set_param(strcat(l_sParent, '/', l_sName, '/gch'), 'Value', l_sGch);
-    end
-    % ACLineSegment.r0
-    l_cPos = getPositionIndex(8);
-    l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
-    l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
-    l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
-    add_block('built-in/Constant', strcat(l_sParent, '/', l_sName, '/r0'), 'Position', l_aPosition);
-    if(exist('l_sR0', 'var'))
-        set_param(strcat(l_sParent, '/', l_sName, '/r0'), 'Value', l_sR0);
-    end
-    % ACLineSegment.r
-    l_cPos = getPositionIndex(9);
-    l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
-    l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
-    l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
-    add_block('built-in/Constant', strcat(l_sParent, '/', l_sName, '/r'), 'Position', l_aPosition);
-    if(exist('l_sR', 'var'))
-        set_param(strcat(l_sParent, '/', l_sName, '/r'), 'Value', l_sR);
-    end
-    % ACLineSegment.x0
-    l_cPos = getPositionIndex(10);
-    l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
-    l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
-    l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
-    add_block('built-in/Constant', strcat(l_sParent, '/', l_sName, '/x0'), 'Position', l_aPosition);
-    if(exist('l_sX0', 'var'))
-        set_param(strcat(l_sParent, '/', l_sName, '/x0'), 'Value', l_sX0);
-    end
-    % ACLineSegment.x
-    l_cPos = getPositionIndex(11);
-    l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
-    l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
-    l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
-    add_block('built-in/Constant', strcat(l_sParent, '/', l_sName, '/x'), 'Position', l_aPosition);
-    if(exist('l_sX', 'var'))
-        set_param(strcat(l_sParent, '/', l_sName, '/x'), 'Value', l_sX);
-    end
-    % The PerLengthImpedance, this ACLineSegment is connected with. It is
-    % assumed, that the PerLengthImpedance already exists, if
-    % ACLineSegment.PerLengthImpedance exists.
-    if(exist('l_sPerLengthImpedance', 'var'))
-        for l_iJ = 1:size(g_cBlocks)
-            if(strcmp(g_cBlocks{l_iJ, 1}, l_sPerLengthImpedance))
-                l_sPLI = strcat(g_cBlocks{l_iJ, 3}, g_cBlocks{l_iJ, 2});
-                break;
-            end
-        end
-        if(exist('l_sPLI', 'var'))
-            % TODO: Implement creation of PerLengthImpedance.
-            % TODO: Connect the found PerLengthImpedance with this ACLineSegment.
-            warning('Connections from ACLineSegments to PerLengthImpedances are currently not implemented!');
-        else
-            warning('Could not find PerLengthImpedance, belonging to RDF-Resource, for ACLineSegment! (RDF-ID: %s)', g_cObjects{g_iIterator, 2});
-        end
-    end
+    l_cResistance = strcat('[', l_sR, {' '}, l_sR0, ']');
+    set_param(strcat(l_sParent, '/', l_sName, '/Distributed Parameters Line'), 'Resistance', l_cResistance{1});
     
     % Clean up everything, that is not needed anymore.
     g_cBlocks{l_iI, 4} = g_cBlocks{l_iI, 4} + 1;
-    g_cBlocks = cat(1, g_cBlocks, {g_cObjects{g_iIterator, 2}, l_sName, l_sParent, 12});
+    g_cBlocks = vertcat(g_cBlocks, {g_cObjects{g_iIterator, 2}, l_sName, l_sParent, l_iBlocks});
     clearvars -except g_iIterator g_iHeight g_iWidth g_iOffset g_cObjects g_cBlocks;
 
 end % End of function 'createACLineSegment'.

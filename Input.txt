@@ -1009,7 +1009,7 @@
 		<cim:IdentifiedObject.name>LN1AC</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>LN1AC</cim:IdentifiedObject.aliasName>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_LN1AC_Line"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_LN1AC_Line"/>
 	</cim:ACLineSegment>	
 	<cim:Terminal rdf:ID="_ID_LN1AC_T1">
 		<cim:IdentifiedObject.name>LN1AC_T1</cim:IdentifiedObject.name>
@@ -1054,7 +1054,7 @@
 		<cim:IdentifiedObject.name>LN2AC</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>LN2AC</cim:IdentifiedObject.aliasName>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_LN2AC_Line"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_LN2AC_Line"/>
 	</cim:ACLineSegment>	
 	<cim:Terminal rdf:ID="_ID_LN2AC_T1">
 		<cim:IdentifiedObject.name>LN2AC_T1</cim:IdentifiedObject.name>
@@ -1099,7 +1099,7 @@
 		<cim:IdentifiedObject.name>LN3AC</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>LN3AC</cim:IdentifiedObject.aliasName>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_LN3AC_Line"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_LN3AC_Line"/>
 	</cim:ACLineSegment>	
 	   <cim:Terminal rdf:ID="_ID_LN3AC_T1">
 		<cim:IdentifiedObject.name>LN3AC_T1</cim:IdentifiedObject.name>
