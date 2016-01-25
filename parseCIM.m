@@ -6,15 +6,17 @@
 %         Last Name:  Krop
 %         E-Mail:     b.krop@gmx.de
 %
-% Last time updated:  18. January 2016
+% Last time updated:  25. January 2016
 
+% @TODO:
+% Consider about pre-allocate 'g_cObjects'.
 function parseCIM()
 
     % Use global variables.
     global g_sFilePath;
     
     % Make variables global.
-    global g_cObjects g_iFileID g_iLine g_sData;
+    global g_iFileID g_iLine g_sData g_cObjects;
 
     % This will contain the whole objects as strings.
     g_cObjects = cell(0, 3);
@@ -61,10 +63,10 @@ function parseCIM()
                         continue;
                     end
                     l_sTag = g_sData(2 : l_cSpaces(1) - 1);
-                    l_cTagEnd = strfind(g_sData, strcat('</', l_sTag, '>'));
+                    l_cTagEnd = strfind(g_sData, ['</', l_sTag, '>']);
                     while(size(l_cTagEnd) <= 0)
                         readLine();
-                        l_cTagEnd = strfind(g_sData, strcat('</', l_sTag, '>'));
+                        l_cTagEnd = strfind(g_sData, ['</', l_sTag, '>']);
                     end
                     % Now, g_sData contains the whole object. Parse it!
                     l_cQuoteChars = strfind(g_sData, '"');
@@ -77,7 +79,7 @@ function parseCIM()
                     l_cTagEnd = strfind(g_sData, '>');
                     l_cSize = size(l_cTagStart);
                     g_sData = g_sData(l_cTagEnd(1) + 1 : l_cTagStart(l_cSize(2)) - 1);
-                    g_cObjects = cat(1, g_cObjects, {l_sTag(5 : end), l_sID, g_sData});
+                    g_cObjects = vertcat(g_cObjects, {l_sTag(5 : end), l_sID, g_sData});
                 case ('/')
                     % A tag ends, which is not a CIM-tag (probably an
                     % RDF-tag). Just ignore it.
@@ -93,18 +95,20 @@ function parseCIM()
     
     % Clean up everything, that is not needed anymore.
     fclose(g_iFileID);
-    clearvars -except g_cObjects;
+    clearvars -global -except g_cObjects;
 
 end % End of main function.
 
 % This function reads a line of a XML-file and removes all comments in that
 % line.
+% @TODO:
+% Consider about pre-allocation of 'g_sData'.
 function readLine()
 
     % Use global variables.
     global g_iFileID g_iLine g_sData;
 
-    g_sData = strcat(g_sData, strtrim(fgetl(g_iFileID)));
+    g_sData = [g_sData, strtrim(fgetl(g_iFileID))];
     g_iLine = g_iLine + 1;
         
     % Skip comments.
@@ -113,17 +117,17 @@ function readLine()
     while(l_cSize > 0)
         l_aCommentEnd = strfind(g_sData, '-->');
         while(size(l_aCommentEnd) <= 0)
-            g_sData = strcat(g_sData, strtrim(fgetl(g_iFileID)));
+            g_sData = [g_sData, strtrim(fgetl(g_iFileID))];
             g_iLine = g_iLine + 1;
             l_aCommentEnd = strfind(g_sData, '-->');
         end
-        g_sData = strcat(g_sData(1 : l_aCommentStart(l_cSize(2)) - 1), g_sData(l_aCommentEnd(1) + 3 : end));
+        g_sData = [g_sData(1 : l_aCommentStart(l_cSize(2)) - 1), g_sData(l_aCommentEnd(1) + 3 : end)];
         l_aCommentStart = strfind(g_sData, '<!--');
         l_cSize = size(l_aCommentStart);
     end
     
     % Clean up everything, that is not needed anymore.
-    clearvars -except g_iFileID g_iLine g_sData;
+    clearvars;
     
 end % End of function 'readLine'.
 

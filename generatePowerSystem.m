@@ -6,7 +6,7 @@
 %         Last Name:  Krop
 %         E-Mail:     b.krop@gmx.de
 %
-% Last time updated:  09. December 2015
+% Last time updated:  25. December 2015
 
 % @param    path    The path of the input file. This is an optional
 %                   argument. If it does not exist or is not a string,
@@ -32,7 +32,7 @@ function system = generatePowerSystem(path, title)
     
     % The CIM objects, defined in the input file.
     if(~exist('parseCIM.m', 'file'))
-        clearvars;
+        clearvars -global;
         error('Cannot find ''parseCIM.m''!');
     end
     
@@ -47,7 +47,7 @@ function system = generatePowerSystem(path, title)
     
     % The Simulink model.
     if(~exist('createSystem.m', 'file'))
-        clearvars;
+        clearvars -global;
         error('Cannot find ''createSystem.m''!');
     end
     
@@ -58,7 +58,7 @@ function system = generatePowerSystem(path, title)
 
     % Clean up everything, that is not needed anymore.
     system = g_dSystem;
-    clearvars -except system;
+    clearvars -global -except system;
 
 end % End of main function.
 
