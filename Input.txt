@@ -9,9 +9,9 @@
 		<cim:IdentifiedObject.aliasName>SubRegion</cim:IdentifiedObject.aliasName>
 		<cim:SubGeographicalRegion.Region rdf:resource="#_37C0E103000D40CD812C47572C31C0AD"/>
 	</cim:SubGeographicalRegion>
-	<!--             -->
-	<!-- BaseVoltage -->
-	<!--             -->
+	<!--              -->
+	<!-- BaseVoltages -->
+	<!--              -->
 	<cim:BaseVoltage rdf:ID="_ID_BaseVoltage_220KV">
 		<cim:IdentifiedObject.name>BaseVoltage 220KV</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>220KV</cim:IdentifiedObject.aliasName>
