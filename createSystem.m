@@ -367,7 +367,7 @@ function createACLineSegment()
     set_param(strcat(g_sParent, '/', g_sName, '/Distributed Parameters Line'), 'Resistance', l_cResistance{1});
     
     % Clean up everything, that is not needed anymore.
-    clearvars -global -except g_iHeight g_iIterator g_iOffset g_iWidth g_dSystem g_cBlocks g_cObjects g_cTemporaryBlocks;
+    clearvars -global -except g_iHeight g_iIterator g_iOffset g_iWidth g_dSystem g_sTitle g_cBlocks g_cObjects g_cTemporaryBlocks;
 
 end % End of function 'createACLineSegment'.
 
@@ -1184,7 +1184,7 @@ function createConductingEquipment()
     global g_iHeight g_iIterator g_iOffset g_iWidth g_cAttributes g_cBlocks g_cObjects;
     
     % Make variables global.
-    global g_sBaseVoltage g_sPhases g_sTerminals;
+    global g_sBaseVoltage g_sPhases;
     
     % Attributes of...
     % ...IdentifiedObject:
@@ -1194,7 +1194,6 @@ function createConductingEquipment()
     % ...ConductingEquipment:
     g_sBaseVoltage = '';
     g_sPhases = 'A';
-    g_sTerminals = '';
     
     parseAttributes();
     createEquipment();
@@ -1249,7 +1248,9 @@ function createConductingEquipment()
         end
         l_cFind = strfind(g_cAttributes{l_iI}, 'cim:ConductingEquipment.Terminals');
         if(size(l_cFind) > 0)
-            g_sTerminals = g_cAttributes{l_iI}(l_cFind(1) + 49 : end - 3);
+            % @Note:
+            % Currently not used.
+            %g_sTerminals = g_cAttributes{l_iI}(l_cFind(1) + 49 : end - 3);
             continue;
         end
     end % End of for.
@@ -1325,10 +1326,6 @@ function createConductingEquipment()
         otherwise
             g_sPhases = '1';
     end
-    % @ConductingEquipment.Terminals:
-    % Every ConductingEquipment has 1 or 2 Terminals.
-    % @TODO:
-    % Connect the Terminals.
     
     % Clean up everything, that is not needed anymore.
     clearvars;
@@ -1821,54 +1818,39 @@ end % End of function 'createEquipment'.
 function createGeographicalRegion()
 
     % Use global variables.
-    global g_iIterator g_iHeight g_iWidth g_iOffset g_sTitle g_cAttributes g_cObjects g_cBlocks;
+    global g_iHeight g_iIterator g_iOffset g_iWidth g_sTitle g_cAttributes g_cBlocks g_cObjects;
+    
+    % Attributes of IdentifiedObject:
+    global g_sDescription g_sName;
     
     parseAttributes();
+    createIdentifiedObject();
     
     % Identify attributes.
-    for l_iI = 1:size(g_cAttributes)
-        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:IdentifiedObject.aliasName');
+    for l_iI = 1 : size(g_cAttributes)
+        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:GeographicalRegion.Regions');
         if(size(l_cFind) > 0)
-            if(exist('l_sName', 'var'))
-                l_sName = strcat(l_sName, ' (', g_cAttributes{l_iI}(l_cFind(1) + 31:l_cFind(2) - 3), ')');
-            else
-                l_sName = strcat('(', g_cAttributes{l_iI}(l_cFind(1) + 31:l_cFind(2) - 3), ')');
-            end
+            % @Note:
+            % Currently not used.
+            %l_sRegions = g_cAttributes{l_iI}(l_cFind(1) + 46 : end - 3);
             continue;
         end
-        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:IdentifiedObject.name');
-        if(size(l_cFind) > 0)
-            if(exist('l_sName', 'var'))
-                l_sName = strcat(g_cAttributes{l_iI}(l_cFind(1) + 26:l_cFind(2) - 3), ' ', l_sName);
-            else
-                l_sName = g_cAttributes{l_iI}(l_cFind(1) + 26:l_cFind(2) - 3);
-            end
-            continue;
-        end
-        % Could not identify the attribute.
-        warning('Could not identify attribute for GeographicalRegion! (RDF-ID: %s)', g_cObjects{g_iIterator,2});
     end % End of for.
     
     % Create this GeographicalRegion.
-    
-    % The name of the block in following format: IdentifiedObject.name
-    % (IdentifiedObject.aliasName). If both variables don't exist, it is
-    % the name of the class, followed by the value of 'g_iIterator'.
-    if(~exist('l_sName', 'var'))
-        l_sName = strcat('GeographicalRegion', g_iIterator);
-    end
-    % Now, the block for this GeographicalRegion can be created. Because it
-    % contains some SubGeographicalRegions, it is a Subsystem.
     l_cPos = getPositionIndex(g_cBlocks{1, 4});
     l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
     l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
     l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
-    add_block('built-in/Subsystem', strcat(g_sTitle, '/', l_sName), 'Position', l_aPosition);
+    add_block('built-in/Subsystem', strcat(g_sTitle, '/', g_sName), 'Position', l_aPosition);
+    % @IdentifiedObject.description:
+    % In Simulink, the description is stored in the Subsystem.
+    set_param(strcat(g_sTitle, '/', g_sName), 'Description', g_sDescription);
     
     % Clean up everything, that is not needed anymore.
     g_cBlocks{1, 4} = g_cBlocks{1, 4} + 1;
-    g_cBlocks = cat(1, g_cBlocks, {g_cObjects{g_iIterator, 2}, l_sName, g_sTitle, 0});
-    clearvars -except g_iIterator g_iHeight g_iWidth g_iOffset g_sTitle g_cObjects g_cBlocks;
+    g_cBlocks = vertcat(g_cBlocks, {g_cObjects{g_iIterator, 2}, g_sName, g_sTitle, 0});
+    clearvars -global -except g_iHeight g_iIterator g_iOffset g_iWidth g_dSystem g_sTitle g_cBlocks g_cObjects g_cTemporaryBlocks;
 
 end % End of function 'createGeographicalRegion'.
 
