@@ -1850,12 +1850,13 @@ function createGeographicalRegion()
     for l_iI = 1 : size(g_cAttributes)
         l_cFind = strfind(g_cAttributes{l_iI}, 'cim:GeographicalRegion.Regions');
         if(size(l_cFind) > 0)
-            % @Note:
-            % Currently not used.
-            %l_sRegions = g_cAttributes{l_iI}(l_cFind(1) + 46 : end - 3);
+            l_sRegions = g_cAttributes{l_iI}(l_cFind(1) + 46 : end - 3);
             continue;
         end
     end % End of for.
+    
+    % This is used to count the blocks in this Subsystem.
+    l_iBlocks = 0;
     
     % Create this GeographicalRegion.
     l_cPos = getPositionIndex(g_cBlocks{1, 4});
@@ -1866,10 +1867,30 @@ function createGeographicalRegion()
     % @IdentifiedObject.description:
     % In Simulink, the description is stored in the Subsystem.
     set_param(strcat(g_sTitle, '/', g_sName), 'Description', g_sDescription);
+    % @GeographicalRegion.Regions:
+    % The SubGeographicalRegions, which are contained by this
+    % GeographicalRegion.
+    if(exist('l_sRegions', 'var'))
+        l_cRegions = strsplit(l_sRegions);
+        l_cSize = size(l_cregions);
+        for l_iI = 1 : l_cSize(2)
+            for l_iJ = 1 : size(g_cBlocks)
+                if(strcmp(l_cRegions{1, l_iI}, g_cBlocks{l_iJ}))
+                    l_cPos = getPositionIndex(l_iBlocks);
+                    l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
+                    l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
+                    l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
+                    add_block(strcat(g_cBlocks{l_iJ, 3}, '/', g_cBlocks{l_iJ, 2}), strcat(g_sTitle, '/', g_sName, '/', g_cBlocks{l_iJ, 2}), 'Position', l_aPosition);
+                    l_iBlocks = l_iBlocks + 1;
+                    break;
+                end
+            end
+        end
+    end % End of if.
     
     % Clean up everything, that is not needed anymore.
     g_cBlocks{1, 4} = g_cBlocks{1, 4} + 1;
-    g_cBlocks = vertcat(g_cBlocks, {g_cObjects{g_iIterator, 2}, g_sName, g_sTitle, 0});
+    g_cBlocks = vertcat(g_cBlocks, {g_cObjects{g_iIterator, 2}, g_sName, g_sTitle, l_iBlocks});
     clearvars -global -except g_iHeight g_iIterator g_iOffset g_iWidth g_dSystem g_sTitle g_cBlocks g_cObjects g_cTemporaryBlocks;
 
 end % End of function 'createGeographicalRegion'.
