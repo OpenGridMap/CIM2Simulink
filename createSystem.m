@@ -654,86 +654,106 @@ end % End of function 'createAnalog'.
 function createBaseVoltage()
 
     % Use global variables.
-    global g_iIterator g_iHeight g_iWidth g_iOffset g_sTitle g_cAttributes g_cObjects g_cBlocks g_cTemporaryBlocks;
+    global g_iHeight g_iIterator g_iOffset g_iWidth g_sTitle g_cAttributes g_cBlocks g_cObjects g_cTemporaryBlocks;
+    
+    % Attributes of...
+    % ...IdentifiedObject:
+    global g_sDescription g_sName;
+    % ...BaseVoltage:
+    l_sIsDC = 'false';
+    l_sNominalVoltage = '0.0';
     
     parseAttributes();
+    createIdentifiedObject();
     
     % Identify attributes.
-    for l_iI = 1:size(g_cAttributes)
-        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:IdentifiedObject.aliasName');
+    for l_iI = 1 : size(g_cAttributes)
+        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:BaseVoltage.ConductingEquipment');
         if(size(l_cFind) > 0)
-            if(exist('l_sName', 'var'))
-                l_sName = strcat(l_sName, ' (', g_cAttributes{l_iI}(l_cFind(1) + 31:l_cFind(2) - 3), ')');
-            else
-                l_sName = strcat('(', g_cAttributes{l_iI}(l_cFind(1) + 31:l_cFind(2) - 3), ')');
-            end
-            continue;
-        end
-        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:IdentifiedObject.name');
-        if(size(l_cFind) > 0)
-            if(exist('l_sName', 'var'))
-                l_sName = strcat(g_cAttributes{l_iI}(l_cFind(1) + 26:l_cFind(2) - 3), ' ', l_sName);
-            else
-                l_sName = g_cAttributes{l_iI}(l_cFind(1) + 26:l_cFind(2) - 3);
-            end
+            l_sConductingEquipment = g_cAttributes{l_iI}(l_cFind(1) + 51 : end - 3);
             continue;
         end
         l_cFind = strfind(g_cAttributes{l_iI}, 'cim:BaseVoltage.isDC');
         if(size(l_cFind) > 0)
-            if(strcmpi(g_cAttributes{l_iI}(l_cFind(1) + 21:l_cFind(2) - 3), 'true'))
-                l_bIsDC = true;
-            else
-                l_bIsDC = false;
-            end
+            l_sIsDC = g_cAttributes{l_iI}(l_cFind(1) + 21 : l_cFind(2) - 3);
             continue;
         end
         l_cFind = strfind(g_cAttributes{l_iI}, 'cim:BaseVoltage.nominalVoltage');
         if(size(l_cFind) > 0)
-            l_sNominalVoltage = num2str(str2double(g_cAttributes{l_iI}(l_cFind(1) + 31:l_cFind(2) - 3)) * 1000);
+            l_sNominalVoltage = g_cAttributes{l_iI}(l_cFind(1) + 31 : l_cFind(2) - 3);
             continue;
         end
-        % Could not identify the attribute.
-        warning('Could not identify attribute for BaseVoltage! (RDF-ID: %s)', g_cObjects{g_iIterator,2});
+        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:BaseVoltage.TopologicalNode');
+        if(size(l_cFind) > 0)
+            % @Note:
+            % Currently not used.
+            %l_sTopologicalNode = g_cAttributes{l_iI}(l_cFind(1) + 47 : end - 3);
+            continue;
+        end
+        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:BaseVoltage.VoltageLevel');
+        if(size(l_cFind) > 0)
+            l_sVoltageLevel = g_cAttributes{l_iI}(l_cFind(1) + 44 : end - 3);
+            continue;
+        end
     end % End of for.
     
-    % Create this BaseVoltage.
-    
-    % The name of the block in following format: IdentifiedObject.name
-    % (IdentifiedObject.aliasName). If both variables don't exist, it is
-    % the name of the class, followed by the value of 'g_iIterator'.
-    if(~exist('l_sName', 'var'))
-        l_sName = strcat('BaseVoltage', g_iIterator);
+    % @BaseVoltage.ConductingEquipment, @BaseVoltage.VoltageLevel:
+    % Every BaseVoltage must be contained by a VoltageLevel or a
+    % ConductingEquipment. If neither BaseVoltage.CondcutingEquipment nor
+    % BaseVoltag.VoltageLevel exists, this BaseVoltage will be created
+    % temporarily at the top level of the system.
+    if(exist('l_sVoltageLevel', 'var'))
+        l_sParent = l_sVoltageLevel;
+    else
+        if(exist('l_sConductingEquipment', 'var'))
+            l_sParent = l_sConductingEquipment;
+        else
+            l_sParent = '';
+        end
     end
-    % BaseVoltage.isDC indicates whether the BaseVoltage is a dc or an ac
-    % source. If it doesn't exist, it is assumed to be false.
-    if(~exist('l_bIsDC', 'var'))
+    for l_iI = 1 : size(g_cBlocks)
+        if(strcmp(g_cBlocks{l_iI, 1}, l_sParent))
+            l_sP = strcat(g_cBlocks{l_iI, 3}, '/', g_cBlocks{l_iI, 2});
+            break;
+        end
+    end
+    if(~exist('l_sP', 'var') || strcmp(l_sP, strcat('/', g_sTitle)))
+        l_sP = g_sTitle;
+        l_iI = 1;
+    end
+    % @BaseVoltage.isDC:
+    % indicates whether the BaseVoltage is a dc or an ac source. If it
+    % doesn't exist, it is assumed to be false.
+    if(strcmpi(l_sIsDC, 'true'))
+        l_bIsDC = true;
+    else
         l_bIsDC = false;
     end
-    % Now, the block for this BaseVoltage can be created, depending on
-    % whether it is a dc or an ac source.
-    % BaseVoltage.nominalVoltage of this BaseVoltage is set right after the
-    % creation.
-    l_cPos = getPositionIndex(g_cBlocks{1, 4});
+    % Create this BaseVoltage.
+    % @BaseVoltage.nominalVoltage:
+    % The nominal voltage (in V).
+    l_cPos = getPositionIndex(g_cBlocks{l_iI, 4});
     l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
     l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
     l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
     if(l_bIsDC)
-        add_block('fl_lib/Electrical/Electrical Sources/DC Voltage Source', strcat(g_sTitle, '/', l_sName), 'Position', l_aPosition);
-        if(exist('l_sNominalVoltage', 'var'))
-            set_param(strcat(g_sTitle, '/', l_sName), 'v0', l_sNominalVoltage);
-        end
+        add_block('fl_lib/Electrical/Electrical Sources/DC Voltage Source', strcat(l_sP, '/', g_sName), 'Position', l_aPosition);
+        set_param(strcat(l_sP, '/', g_sName), 'v0', l_sNominalVoltage);
     else
-        add_block('fl_lib/Electrical/Electrical Sources/AC Voltage Source', strcat(g_sTitle, '/', l_sName), 'Position', l_aPosition);
-        if(exist('l_sNominalVoltage', 'var'))
-            set_param(strcat(g_sTitle, '/', l_sName), 'amp', l_sNominalVoltage);
-        end
+        add_block('fl_lib/Electrical/Electrical Sources/AC Voltage Source', strcat(l_sP, '/', g_sName), 'Position', l_aPosition);
+        set_param(strcat(l_sP, '/', g_sName), 'amp', l_sNominalVoltage);
     end
+    % @IdentifiedObject.description:
+    % The description of this BaseVoltage.
+    set_param(strcat(l_sP, '/', g_sName), 'Description', g_sDescription);
     
     % Clean up everything, that is not needed anymore.
-    g_cBlocks{1, 4} = g_cBlocks{1, 4} + 1;
-    g_cBlocks = cat(1, g_cBlocks, {g_cObjects{g_iIterator, 2}, l_sName, g_sTitle, 0});
-    g_cTemporaryBlocks = vertcat(g_cTemporaryBlocks, {strcat(g_sTitle, '/', l_sName)});
-    clearvars -except g_iIterator g_iHeight g_iWidth g_iOffset g_sTitle g_cObjects g_cBlocks;
+    g_cBlocks{l_iI, 4} = g_cBlocks{l_iI, 4} + 1;
+    g_cBlocks = vertcat(g_cBlocks, {g_cObjects{g_iIterator, 2}, g_sName, l_sP, 0});
+    if(strcmp(l_sP, g_sTitle))
+        g_cTemporaryBlocks = vertcat(g_cTemporaryBlocks, {strcat(l_sP, '/', g_sName)});
+    end
+    clearvars;
 
 end % End of function 'createBaseVoltage'.
 
