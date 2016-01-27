@@ -211,6 +211,9 @@ function parseAttributes()
 
 end % End of function 'parseAttributes'.
 
+% The following functions are creating CIM objects in Simulink. For
+% example, createBaseVoltage creates either a DC or an AC Voltage Source.
+
 function createACLineSegment()
 
     % Use global variables.
@@ -1872,15 +1875,15 @@ function createGeographicalRegion()
     % GeographicalRegion.
     if(exist('l_sRegions', 'var'))
         l_cRegions = strsplit(l_sRegions);
-        l_cSize = size(l_cregions);
-        for l_iI = 1 : l_cSize(2)
-            for l_iJ = 1 : size(g_cBlocks)
-                if(strcmp(l_cRegions{1, l_iI}, g_cBlocks{l_iJ}))
+        l_cSize = size(l_cRegions);
+        for l_iJ = 1 : l_cSize(2)
+            for l_iK = 1 : size(g_cBlocks)
+                if(strcmp(l_cRegions{1, l_iJ}, g_cBlocks{l_iK}))
                     l_cPos = getPositionIndex(l_iBlocks);
                     l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
                     l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
                     l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
-                    add_block(strcat(g_cBlocks{l_iJ, 3}, '/', g_cBlocks{l_iJ, 2}), strcat(g_sTitle, '/', g_sName, '/', g_cBlocks{l_iJ, 2}), 'Position', l_aPosition);
+                    add_block(strcat(g_cBlocks{l_iK, 3}, '/', g_cBlocks{l_iK, 2}), strcat(g_sTitle, '/', g_sName, '/', g_cBlocks{l_iK, 2}), 'Position', l_aPosition);
                     l_iBlocks = l_iBlocks + 1;
                     break;
                 end
@@ -2850,7 +2853,7 @@ end % End of function 'createRegulatingControl'.
 function createSubGeographicalRegion()
 
     % Use global variables.
-    global g_iHeight g_iIterator g_iOffset g_iWidth g_cAttributes g_cBlocks g_cObjects;
+    global g_iHeight g_iIterator g_iOffset g_iWidth g_sTitle g_cAttributes g_cBlocks g_cObjects g_cTemporaryBlocks;
     
     % Attributes of IdentifiedObject:
     global g_sDescription g_sName;
@@ -2862,9 +2865,7 @@ function createSubGeographicalRegion()
     for l_iI = 1 : size(g_cAttributes)
         l_cFind = strfind(g_cAttributes{l_iI}, 'cim:SubGeographicalRegion.Lines');
         if(size(l_cFind) > 0)
-            % @Note:
-            % Currently not used.
-            %l_sLines = g_cAttributes{l_iI}(l_cFind(1) + 47 : end - 3);
+            l_sLines = g_cAttributes{l_iI}(l_cFind(1) + 47 : end - 3);
             continue;
         end
         l_cFind = strfind(g_cAttributes{l_iI}, 'cim:SubGeographicalRegion.Region');
@@ -2874,44 +2875,88 @@ function createSubGeographicalRegion()
         end
         l_cFind = strfind(g_cAttributes{l_iI}, 'cim:SubGeographicalRegion.Substations');
         if(size(l_cFind) > 0)
-            % @Note:
-            % Currently not used.
-            %l_sSubstations = g_cAttributes{l_iI}(l_cFind(1) + 53 : end - 3);
+            l_sSubstations = g_cAttributes{l_iI}(l_cFind(1) + 53 : end - 3);
             continue;
         end
     end % End of for.
     
+    % This is used to count the blocks in this Subsystem.
+    l_iBlocks = 0;
+    
     % @SubGeographicalRegion.Region:
     % Every SubGeographicalRegion must be contained by a
     % GeographicalRegion. If SubGeographicalRegion.Region doesn't exist,
-    % this SubGeographicalRegion cannot be created.
-    if(~exist('l_sRegion', 'var'))
-        warning('Could not create %s, because Region is missing! (RDF-ID: %s)', g_cObjects{g_iIterator}, g_cObjects{g_iIterator, 2});
-        return;
+    % this SubGeographicalRegion will be created temporarily at the top
+    % level of the system.
+    if(exist('l_sRegion', 'var'))
+        l_sParent = l_sRegion;
+    else
+        l_sParent = g_sTitle;
     end
     for l_iI = 1 : size(g_cBlocks)
-        if(strcmp(g_cBlocks{l_iI, 1}, l_sRegion))
-            l_sParent = strcat(g_cBlocks{l_iI, 3}, '/', g_cBlocks{l_iI, 2});
+        if(strcmp(g_cBlocks{l_iI, 1}, l_sParent))
+            l_sP = strcat(g_cBlocks{l_iI, 3}, '/', g_cBlocks{l_iI, 2});
             break;
         end
     end
-    if(~exist('l_sParent', 'var'))
-        warning('Could not create %s, because could not find Region! (RDF-ID: %s)', g_cObjects{g_iIterator}, g_cObjects{g_iIterator, 2});
-        return;
+    if(~exist('l_sP', 'var') || strcmp(l_sP, strcat('/', g_sTitle)))
+        l_sP = g_sTitle;
+        l_iI = 1;
     end
     % Create this SubGeographicalRegion.
     l_cPos = getPositionIndex(g_cBlocks{l_iI, 4});
     l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
     l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
     l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
-    add_block('built-in/Subsystem', strcat(l_sParent, '/', g_sName), 'Position', l_aPosition);
+    add_block('built-in/Subsystem', strcat(l_sP, '/', g_sName), 'Position', l_aPosition);
     % @IdentifiedObject.description:
     % In Simulink, the description is stored in the Subsystem.
-    set_param(strcat(l_sParent, '/', g_sName), 'Description', g_sDescription);
+    set_param(strcat(l_sP, '/', g_sName), 'Description', g_sDescription);
+    % @SubGeographicalRegion.Substations:
+    % The Substations, which are contained by this SubGeographicalRegion.
+    if(exist('l_sSubstations', 'var'))
+        l_cSubstations = strsplit(l_sSubstations);
+        l_cSize = size(l_cSubstations);
+        for l_iJ = 1 : l_cSize(2)
+            for l_iK = 1 : size(g_cBlocks)
+                if(strcmp(l_cSubstations{1, l_iJ}, g_cBlocks{l_iK}))
+                    l_cPos = getPositionIndex(l_iBlocks);
+                    l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
+                    l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
+                    l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
+                    add_block(strcat(g_cBlocks{l_iK, 3}, '/', g_cBlocks{l_iK, 2}), strcat(l_sP, '/', g_sName, '/', g_cBlocks{l_iK, 2}), 'Position', l_aPosition);
+                    l_iBlocks = l_iBlocks + 1;
+                    break;
+                end
+            end
+        end
+    end % End of if.
+    % @SubGeographicalRegion.Lines:
+    % The Lines, which are contained by this SubGeographicalRegion.
+    if(exist('l_sLines', 'var'))
+        l_cLines = strsplit(l_sLines);
+        l_cSize = size(l_cLines);
+        for l_iJ = 1 : l_cSize(2)
+            for l_iK = 1 : size(g_cBlocks)
+                if(strcmp(l_cLines{1, l_iJ}, g_cBlocks{l_iK}))
+                    l_cPos = getPositionIndex(l_iBlocks);
+                    l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
+                    l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
+                    l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
+                    add_block(strcat(g_cBlocks{l_iK, 3}, '/', g_cBlocks{l_iK, 2}), strcat(l_sP, '/', g_sName, '/', g_cBlocks{l_iK, 2}), 'Position', l_aPosition);
+                    l_iBlocks = l_iBlocks + 1;
+                    break;
+                end
+            end
+        end
+    end % End of if.
     
     % Clean up everything, that is not needed anymore.
     g_cBlocks{l_iI, 4} = g_cBlocks{l_iI, 4} + 1;
-    g_cBlocks = vertcat(g_cBlocks, {g_cObjects{g_iIterator, 2}, g_sName, l_sParent, 0});
+    g_cBlocks = vertcat(g_cBlocks, {g_cObjects{g_iIterator, 2}, g_sName, l_sP, l_iBlocks});
+    if(strcmp(l_sP, g_sTitle))
+        g_cTemporaryBlocks = vertcat(g_cTemporaryBlocks, {strcat(l_sP, '/', g_sName)});
+    end
     clearvars -global -except g_iHeight g_iIterator g_iOffset g_iWidth g_dSystem g_sTitle g_cBlocks g_cObjects g_cTemporaryBlocks;
 
 end % End of function 'createSubGeographicalRegion'.
