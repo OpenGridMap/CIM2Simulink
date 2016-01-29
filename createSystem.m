@@ -6,7 +6,7 @@
 %         Last Name:  Krop
 %         E-Mail:     b.krop@gmx.de
 %
-% Last time updated:  25. January 2016
+% Last time updated:  29. January 2016
 
 function createSystem()
 
@@ -1541,6 +1541,41 @@ function createConnectivityNode()
     clearvars -except g_iIterator g_iHeight g_iWidth g_iOffset g_cObjects g_cBlocks;
 
 end % End of function 'createConnectivityNode'.
+
+function createConnectivityNodeContainer()
+
+    % Use global variables.
+    global g_cAttributes;
+    
+    % Make variables global.
+    global g_sConnectivityNodes;
+    
+    % Attributes:
+    g_sConnectivityNodes = '';
+    
+    parseAttributes();
+    createPowerSystemResource();
+    
+    % Identify attributes.
+    for l_iI = 1 : size(g_cAttributes)
+        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:ConnectivityNodeContainer.ConnectivityNodes');
+        if(size(l_cFind) > 0)
+            g_sConnectivityNodes = g_cAttributes{l_iI}(l_cFind(1) + 63 : end - 3);
+            continue;
+        end
+        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:ConnectivityNodeContainer.TopologicalNode');
+        if(size(l_cFind) > 0)
+            % @Note:
+            % Currently not used.
+            %g_sTopologicalNode = l_cAttributes{l_iI}(l_cFind(1) + 61 : end - 3);
+            continue;
+        end
+    end % End of for.
+    
+    % Clean up everything, that is not needed anymore.
+    clearvars;
+
+end % End of function 'createConnectivityNodeContainer'.
 
 function createDisconnector()
 
