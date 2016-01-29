@@ -438,6 +438,9 @@ function createACLineSegment()
     l_cResistance = strcat('[', l_sR, {' '}, l_sR0, ']');
     set_param(strcat(g_sParent, '/', g_sName, '/Distributed Parameters Line'), 'Resistance', l_cResistance{1});
     
+    % Reset the other values of the Distributed Parameters Line.
+    set_param(strcat(g_sParent, '/', g_sName, '/Distributed Parameters Line'), 'Inductance', '[0 0]', 'Capacitance', '[0 0]');
+    
     % Clean up everything, that is not needed anymore.
     clearvars -global -except g_iHeight g_iIterator g_iOffset g_iWidth g_dSystem g_sTitle g_cBlocks g_cObjects g_cTemporaryBlocks;
 
@@ -1454,91 +1457,80 @@ end % End of function 'createConductor'.
 function createConnectivityNode()
 
     % Use global variables.
-    global g_iIterator g_iHeight g_iWidth g_iOffset g_cAttributes g_cObjects g_cBlocks;
+    global g_iHeight g_iIterator g_iOffset g_iWidth g_sTitle g_cAttributes g_cBlocks g_cObjects g_cTemporaryBlocks;
+    
+    % Attributes of...
+    % ...IdentifiedObject:
+    global g_sDescription g_sName;
+    % ...ConnectivityNode:
+    l_sConnectivityNodeContainer = '';
     
     parseAttributes();
+    createIdentifiedObject();
     
     % Identify attributes.
-    for l_iI = 1:size(g_cAttributes)
-        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:IdentifiedObject.aliasName');
+    for l_iI = 1 : size(g_cAttributes)
+        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:ConnectivityNode.BusNameMarker');
         if(size(l_cFind) > 0)
-            if(exist('l_sName', 'var'))
-                l_sName = strcat(l_sName, ' (', g_cAttributes{l_iI}(l_cFind(1) + 31:l_cFind(2) - 3), ')');
-            else
-                l_sName = strcat('(', g_cAttributes{l_iI}(l_cFind(1) + 31:l_cFind(2) - 3), ')');
-            end
-            continue;
-        end
-        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:IdentifiedObject.name');
-        if(size(l_cFind) > 0)
-            if(exist('l_sName', 'var'))
-                l_sName = strcat(g_cAttributes{l_iI}(l_cFind(1) + 26:l_cFind(2) - 3), ' ', l_sName);
-            else
-                l_sName = g_cAttributes{l_iI}(l_cFind(1) + 26:l_cFind(2) - 3);
-            end
+            % @Note:
+            % Currently not used.
+            %l_sBusNameMarker = g_cAttributes{l_iI}(l_cFind(1) + 50 : end - 3);
             continue;
         end
         l_cFind = strfind(g_cAttributes{l_iI}, 'cim:ConnectivityNode.ConnectivityNodeContainer');
         if(size(l_cFind) > 0)
-            l_sConnectivityNodeContainer = g_cAttributes{l_iI}(l_cFind(1) + 62:end - 3);
+            l_sConnectivityNodeContainer = g_cAttributes{l_iI}(l_cFind(1) + 62 : end - 3);
             continue;
         end
-        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:ConnectivityNode.MemberOf_TopologicalNode');
+        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:ConnectivityNode.Terminals');
         if(size(l_cFind) > 0)
-            l_sMemberOf_TopologicalNode = g_cAttributes{l_iI}(l_cFind(1) + 61:end - 3);
+            % @Note:
+            % Currently not used.
+            %l_sTerminals= g_cAttributes{l_iI}(l_cFind(1) + 46 : end - 3);
             continue;
         end
-        % Could not identify the attribute.
-        warning('Could not identify attribute for ConnectivityNode! (RDF-ID: %s)', g_cObjects{g_iIterator,2});
+        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:ConnectivityNode.TopologicalNode');
+        if(size(l_cFind) > 0)
+            % @Note:
+            % Currently not used.
+            %l_sTopologicalNode = g_cAttributes{l_iI}(l_cFind(1) + 52 : end - 3);
+            continue;
+        end
     end % End of for.
     
-    % Create this ConnectivityNode.
-    
-    % Every ConnectivityNode is either contained by a TopolocialNode or a
-    % ConnectivityNodeContainer. Therefor, look first for
-    % ConnectivityNode.MemberOf_TopologicalNode (because the relation is
-    % stronger) and only if it doesn't exist, look for
-    % ConnectivityNode.ConnectivityNodeContainer. If both doesn't exist,
-    % this ConnectivityNode cannot be created.
-    if(exist('l_sMemberOf_TopologicalNode', 'var'))
-        l_sContainer = l_sMemberOf_TopologicalNode;
-    else
-        if(exist('l_sConnectivityNodeContainer', 'var'))
-            l_sContainer = l_sConnectivityNodeContainer;
-        end
-    end
-    if(~exist('l_sContainer', 'var'))
-        warning('Could not create ConnectivityNode, because TopologicalNode and ConnectivityNodeContainer are missing! (RDF-ID: %s)', g_cObjects{g_iIterator,2});
-        return;
-    end
-    for l_iI = 1:size(g_cBlocks)
-        if(strcmp(g_cBlocks{l_iI, 1}, l_sContainer))
+    % @ConnectivityNode.ConnectivityNodeContainer:
+    % Every ConnectivityNode must be contained by a
+    % ConnectivityNodeContainer. If
+    % ConnectivityNode.ConnectivityNodeContainer doesn't exist, this
+    % ConnectivityNode will be created temporarily at the top level of the
+    % system.
+    for l_iI = 1 : size(g_cBlocks)
+        if(strcmp(g_cBlocks{l_iI, 1}, l_sConnectivityNodeContainer))
             l_sParent = strcat(g_cBlocks{l_iI, 3}, '/', g_cBlocks{l_iI, 2});
             break;
         end
     end
-    if(~exist('l_sParent', 'var'))
-        warning('Could not create ConnectivityNode, because could not find TopologicalNode or ConnectivityNodeContainer, belonging to RDF-Resource! (RDF-ID: %s)', g_cObjects{g_iIterator,2});
-        return;
+    if(~exist('l_sParent', 'var') || strcmp(l_sParent, strcat('/', g_sTitle)))
+        l_sParent = g_sTitle;
+        l_iI = 1;
     end
-    % The name of the block in following format: IdentifiedObject.name
-    % (IdentifiedObject.aliasName). If both variables don't exist, it is
-    % the name of the class, followed by the value of 'g_iIterator'.
-    if(~exist('l_sName', 'var'))
-        l_sName = strcat('ConnectivityNode', g_iIterator);
-    end
-    % Now, the block for this ConnectivityNode can be created. Because it
-    % contains some blocks to connect other blocks, it is a Subsystem.
+    % Create this ConnectivityNode.
     l_cPos = getPositionIndex(g_cBlocks{l_iI, 4});
     l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
     l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
     l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
-    add_block('built-in/Subsystem', strcat(l_sParent, '/', l_sName), 'Position', l_aPosition);
+    add_block('built-in/Subsystem', strcat(l_sParent, '/', g_sName), 'Position', l_aPosition);
+    % @IdentifiedObject.description:
+    % In Simulink, the description is stored in the Subsystem.
+    set_param(strcat(l_sParent, '/', g_sName), 'Description', g_sDescription);
     
     % Clean up everything, that is not needed anymore.
     g_cBlocks{l_iI, 4} = g_cBlocks{l_iI, 4} + 1;
-    g_cBlocks = cat(1, g_cBlocks, {g_cObjects{g_iIterator, 2}, l_sName, l_sParent, 0});
-    clearvars -except g_iIterator g_iHeight g_iWidth g_iOffset g_cObjects g_cBlocks;
+    g_cBlocks = vertcat(g_cBlocks, {g_cObjects{g_iIterator, 2}, g_sName, l_sParent, 0});
+    if(strcmp(l_sParent, g_sTitle))
+        g_cTemporaryBlocks = vertcat(g_cTemporaryBlocks, {g_cObjects{g_iIterator, 2}, g_sName, l_sParent});
+    end
+    clearvars -global -except g_iHeight g_iIterator g_iOffset g_iWidth g_dSystem g_sTitle g_cBlocks g_cObjects g_cTemporaryBlocks;
 
 end % End of function 'createConnectivityNode'.
 
