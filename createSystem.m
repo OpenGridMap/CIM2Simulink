@@ -1925,6 +1925,34 @@ function createEquipment()
 
 end % End of function 'createEquipment'.
 
+function createEquipmentContainer()
+
+    % Use global variables.
+    global g_cAttributes;
+    
+    % Make variables global.
+    global g_sEquipments;
+    
+    % Attributes:
+    g_sEquipments = '';
+    
+    parseAttributes();
+    createConnectivityNodeContainer();
+    
+    % Identify attributes.
+    for l_iI = 1 : size(g_cAttributes)
+        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:EquipmentContainer.Equipments');
+        if(size(l_cFind) > 0)
+            g_sEquipments = g_cAttributes{l_iI}(l_cFind(1) + 49 : end - 3);
+            continue;
+        end
+    end % End of for.
+    
+    % Clean up everything, that is not needed anymore.
+    clearvars;
+
+end % End of function 'createEquipmentContainer'.
+
 function createGeographicalRegion()
 
     % Use global variables.
