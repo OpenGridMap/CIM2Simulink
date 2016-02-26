@@ -6,7 +6,7 @@
 %         Last Name:  Krop
 %         E-Mail:     b.krop@gmx.de
 %
-% Last time updated:  29. January 2016
+% Last time updated:  25. February 2016
 
 function createSystem()
 
@@ -304,8 +304,9 @@ function createACLineSegment()
     % ...ACLineSegment:
     l_sR = '0.0';
     l_sR0 = '0.0';
-    %l_sX = '0.0';
-    %l_sX0 = '0.0';
+    l_sX = '0.0';
+    l_sX0 = '0.0';
+    l_sF = '50.0';
     
     parseAttributes();
     createConductor();
@@ -316,63 +317,63 @@ function createACLineSegment()
         if(size(l_cFind) > 0)
             % @Note:
             % Currently not used.
-            %l_sB0ch = l_cAttributes{l_iI}(l_cFind(1) + 23 : l_cFind(2) - 3);
+            %l_sB0ch = g_cAttributes{l_iI}(l_cFind(1) + 23 : l_cFind(2) - 3);
             continue;
         end
         l_cFind = strfind(g_cAttributes{l_iI}, 'cim:ACLineSegment.bch');
         if(size(l_cFind) > 0)
             % @Note:
             % Currently not used.
-            %l_sBch = l_cAttributes{l_iI}(l_cFind(1) + 22 : l_cFind(2) - 3);
+            %l_sBch = g_cAttributes{l_iI}(l_cFind(1) + 22 : l_cFind(2) - 3);
             continue;
         end
         l_cFind = strfind(g_cAttributes{l_iI}, 'cim:ACLineSegment.Clamp');
         if(size(l_cFind) > 0)
             % @Note:
             % Currently not used.
-            %l_sClamp = l_cAttributes{l_iI}(l_cFind(1) + 39 : end - 3);
+            %l_sClamp = g_cAttributes{l_iI}(l_cFind(1) + 39 : end - 3);
             continue;
         end
         l_cFind = strfind(g_cAttributes{l_iI}, 'cim:ACLineSegment.ConductorAssets');
         if(size(l_cFind) > 0)
             % @Note:
             % Currently not used.
-            %l_sConductorAssets = l_cAttributes{l_iI}(l_cFind(1) + 49 : end - 3);
+            %l_sConductorAssets = g_cAttributes{l_iI}(l_cFind(1) + 49 : end - 3);
             continue;
         end
         l_cFind = strfind(g_cAttributes{l_iI}, 'cim:ACLineSegment.ConductorInfo');
         if(size(l_cFind) > 0)
             % @Note:
             % Currently not used.
-            %l_sConductorInfo = l_cAttributes{l_iI}(l_cFind(1) + 47 : end - 3);
+            %l_sConductorInfo = g_cAttributes{l_iI}(l_cFind(1) + 47 : end - 3);
             continue;
         end
         l_cFind = strfind(g_cAttributes{l_iI}, 'cim:ACLineSegment.Cut');
         if(size(l_cFind) > 0)
             % @Note:
             % Currently not used.
-            %l_sCut = l_cAttributes{l_iI}(l_cFind(1) + 37 : end - 3);
+            %l_sCut = g_cAttributes{l_iI}(l_cFind(1) + 37 : end - 3);
             continue;
         end
         l_cFind = strfind(g_cAttributes{l_iI}, 'cim:ACLineSegment.g0ch');
         if(size(l_cFind) > 0)
             % @Note:
             % Currently not used.
-            %l_sG0ch = l_cAttributes{l_iI}(l_cFind(1) + 23 : l_cFind(2) - 3);
+            %l_sG0ch = g_cAttributes{l_iI}(l_cFind(1) + 23 : l_cFind(2) - 3);
             continue;
         end
         l_cFind = strfind(g_cAttributes{l_iI}, 'cim:ACLineSegment.gch');
         if(size(l_cFind) > 0)
             % @Note:
             % Currently not used.
-            %l_sGch = l_cAttributes{l_iI}(l_cFind(1) + 22 : l_cFind(2) - 3);
+            %l_sGch = g_cAttributes{l_iI}(l_cFind(1) + 22 : l_cFind(2) - 3);
             continue;
         end
         l_cFind = strfind(g_cAttributes{l_iI}, 'cim:ACLineSegment.PhaseImpedance');
         if(size(l_cFind) > 0)
             % @Note:
             % Currently not used.
-            %l_sPhaseImpedance = l_cAttributes{l_iI}(l_cFind(1) + 48 : end - 3);
+            %l_sPhaseImpedance = g_cAttributes{l_iI}(l_cFind(1) + 48 : end - 3);
             continue;
         end
         l_cFind = strfind(g_cAttributes{l_iI}, 'cim:ACLineSegment.r0');
@@ -389,21 +390,17 @@ function createACLineSegment()
         if(size(l_cFind) > 0)
             % @Note:
             % Currently not used.
-            %l_sSequenceImpedance = l_cAttributes{l_iI}(l_cFind(1) + 51 : end - 3);
+            %l_sSequenceImpedance = g_cAttributes{l_iI}(l_cFind(1) + 51 : end - 3);
             continue;
         end
         l_cFind = strfind(g_cAttributes{l_iI}, 'cim:ACLineSegment.x0');
         if(size(l_cFind) > 0)
-            % @Note:
-            % Currently not used.
-            %l_sX0 = l_cAttributes{l_iI}(l_cFind(1) + 21 : l_cFind(2) - 3);
+            l_sX0 = g_cAttributes{l_iI}(l_cFind(1) + 21 : l_cFind(2) - 3);
             continue;
         end
         l_cFind = strfind(g_cAttributes{l_iI}, 'cim:ACLineSegment.x');
         if(size(l_cFind) > 0)
-            % @Note:
-            % Currently not used.
-            %l_sX = l_cAttributes{l_iI}(l_cFind(1) + 20 : l_cFind(2) - 3);
+            l_sX = g_cAttributes{l_iI}(l_cFind(1) + 20 : l_cFind(2) - 3);
             continue;
         end
     end % End of for.
@@ -430,16 +427,30 @@ function createACLineSegment()
     % @ACLineSegment.r, @ACLineSegment.r0:
     % The positive and zero resistance of the entire line segment. In
     % Simulink, resistance / km is needed. Therefore the resistances will
-    % devided through the length.
+    % devided by the length.
     if(str2double(g_sLength) ~= 0)
         l_sR = num2str(str2double(l_sR) / str2double(g_sLength));
         l_sR0 = num2str(str2double(l_sR0) / str2double(g_sLength));
     end
     l_cResistance = strcat('[', l_sR, {' '}, l_sR0, ']');
     set_param(strcat(g_sParent, '/', g_sName, '/Distributed Parameters Line'), 'Resistance', l_cResistance{1});
+    % @ACLineSegment.x, @ACLineSegment.x0:
+    % The positive and zero reactance of the entire line segment. In
+    % Simulink, inductance per km is needed. The inductance can be
+    % calculated out of the reactances by the formula
+    % "L = X / (2 * PI * f)". f = 50 is assumed. To get the inductance per
+    % km, it has to be devided by the length.
+    l_sL = num2str(str2double(l_sX) / (2 * pi * str2double(l_sF)));
+    l_sL0 = num2str(str2double(l_sX0) / (2 * pi * str2double(l_sF)));
+    if(str2double(g_sLength) ~= 0)
+        l_sL = num2str(str2double(l_sL) / str2double(g_sLength));
+        l_sL0 = num2str(str2double(l_sL0) / str2double(g_sLength));
+    end
+    l_cInductance = strcat('[', l_sL, {' '}, l_sL0, ']');
+    set_param(strcat(g_sParent, '/', g_sName, '/Distributed Parameters Line'), 'Inductance', l_cInductance{1});
     
     % Reset the other values of the Distributed Parameters Line.
-    set_param(strcat(g_sParent, '/', g_sName, '/Distributed Parameters Line'), 'Inductance', '[0 0]', 'Capacitance', '[0 0]');
+    set_param(strcat(g_sParent, '/', g_sName, '/Distributed Parameters Line'), 'Frequency', l_sF, 'Capacitance', '[0 0]');
     
     % Clean up everything, that is not needed anymore.
     clearvars -global -except g_iHeight g_iIterator g_iOffset g_iWidth g_dSystem g_sTitle g_cBlocks g_cObjects g_cTemporaryBlocks;
