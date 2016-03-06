@@ -6,7 +6,7 @@
 %         Last Name:  Krop
 %         E-Mail:     b.krop@gmx.de
 %
-% Last time updated:  25. February 2016
+% Last time updated:  04. March 2016
 
 function createSystem()
 
@@ -94,6 +94,8 @@ function createSystem()
                 createConnectivityNode();
             case ('Disconnector')
                 createDisconnector();
+            case ('EnergySource')
+                createEnergySource();
             case ('GeographicalRegion')
                 createGeographicalRegion();
             case ('Line')
@@ -290,23 +292,24 @@ end % End of function 'copyBlocks'.
 function createACLineSegment()
 
     % Use global variables.
-    global g_iHeight g_iOffset g_iWidth g_cAttributes g_cBlocks;
+    global g_iHeight g_iIterator g_iOffset g_iWidth g_cAttributes g_cBlocks g_cObjects g_cTemporaryBlocks g_sTitle;
     
     % Attributes of...
     % ...IdentifiedObject:
-    global g_sName;
+    global g_sDescription g_sName;
     % ...Equipment:
-    global g_sParent;
+    global g_sEquipmentContainer;
     % ...ConductingEquipment:
     global g_sPhases;
     % ...Conductor:
     global g_sLength;
     % ...ACLineSegment:
+    l_sCapacitance = '[0 0]';
+    l_sFrequency = '50.0';
     l_sR = '0.0';
     l_sR0 = '0.0';
     l_sX = '0.0';
     l_sX0 = '0.0';
-    l_sF = '50.0';
     
     parseAttributes();
     createConductor();
@@ -405,25 +408,67 @@ function createACLineSegment()
         end
     end % End of for.
     
-    % This is used to get the position of the correct Subsystem.
-    l_cSize = size(g_cBlocks);
-    
-    % Create this ACLineSegment.
-    l_cPos = getPositionIndex(g_cBlocks{l_cSize(1), 4});
-    l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
-    l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
-    l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
-    add_block('powerlib/Elements/Distributed Parameters Line', strcat(g_sParent, '/', g_sName, '/Distributed Parameters Line'), 'Position', l_aPosition);
-    g_cBlocks{l_cSize(1), 4} = g_cBlocks{l_cSize(1), 4} + 1;
+    % @Equipment.EquipmentContainer:
+    % Every Equipment must be contained by a EquipmentContainer. If
+    % Equipment.EquipmentContainer doesn't exist, this Equipment will be
+    % created temporarily at the top level of the system.
+    if(~strcmp(g_sEquipmentContainer, ''))
+        for l_iI = 1 : size(g_cBlocks)
+            if(strcmp(g_sEquipmentContainer, g_cBlocks{l_iI}))
+                l_sParent = strcat(g_cBlocks{l_iI, 3}, '/', g_cBlocks{l_iI, 2});
+                break;
+            end
+        end
+    end
+    if(~exist('l_sParent', 'var'))
+        l_sParent = g_sTitle;
+        l_iI = 1;
+    end
     % @ConductingEquipment.phases:
     % The carried phases of this ACLineSegment.
-    set_param(strcat(g_sParent, '/', g_sName, '/Distributed Parameters Line'), 'Phases', g_sPhases);
+    switch(g_sPhases)
+        case('A')
+            g_sPhases = '1';
+        case('AB')
+            g_sPhases = '2';
+        case('AC')
+            g_sPhases = '2';
+        case('AN')
+            g_sPhases = '1';
+        case('ABC')
+            g_sPhases = '3';
+        case('ABN')
+            g_sPhases = '2';
+        case('ACN')
+            g_sPhases = '2';
+        case('ABCN')
+            g_sPhases = '3';
+        case('B')
+            g_sPhases = '1';
+        case('BC')
+            g_sPhases = '2';
+        case('BN')
+            g_sPhases = '1';
+        case('BCN')
+            g_sPhases = '2';
+        case('C')
+            g_sPhases = '1';
+        case('CN')
+            g_sPhases = '1';
+        case('splitSecondary1N')
+            g_sPhases = '1';
+        case('splitSecondary2N')
+            g_sPhases = '1';
+        case('splitSecondary12N')
+            g_sPhases = '2';
+        otherwise
+            g_sPhases = '1';
+    end
     % @Conductor.length:
     % The segment length (in m) for calculating line section capabilities.
     % In Simulink, the length is needed in km. Therefore, it will be
     % divided by 1000.
     g_sLength = num2str(str2double(g_sLength) / 1000.0);
-    set_param(strcat(g_sParent, '/', g_sName, '/Distributed Parameters Line'), 'Length', g_sLength);
     % @ACLineSegment.r, @ACLineSegment.r0:
     % The positive and zero resistance of the entire line segment. In
     % Simulink, resistance / km is needed. Therefore the resistances will
@@ -432,25 +477,35 @@ function createACLineSegment()
         l_sR = num2str(str2double(l_sR) / str2double(g_sLength));
         l_sR0 = num2str(str2double(l_sR0) / str2double(g_sLength));
     end
-    l_cResistance = strcat('[', l_sR, {' '}, l_sR0, ']');
-    set_param(strcat(g_sParent, '/', g_sName, '/Distributed Parameters Line'), 'Resistance', l_cResistance{1});
+    l_sResistance = strcat('[', l_sR, {' '}, l_sR0, ']');
     % @ACLineSegment.x, @ACLineSegment.x0:
     % The positive and zero reactance of the entire line segment. In
     % Simulink, inductance per km is needed. The inductance can be
     % calculated out of the reactances by the formula
     % "L = X / (2 * PI * f)". f = 50 is assumed. To get the inductance per
     % km, it has to be devided by the length.
-    l_sL = num2str(str2double(l_sX) / (2 * pi * str2double(l_sF)));
-    l_sL0 = num2str(str2double(l_sX0) / (2 * pi * str2double(l_sF)));
+    l_sL = num2str(str2double(l_sX) / (2 * pi * str2double(l_sFrequency)));
+    l_sL0 = num2str(str2double(l_sX0) / (2 * pi * str2double(l_sFrequency)));
     if(str2double(g_sLength) ~= 0)
         l_sL = num2str(str2double(l_sL) / str2double(g_sLength));
         l_sL0 = num2str(str2double(l_sL0) / str2double(g_sLength));
     end
-    l_cInductance = strcat('[', l_sL, {' '}, l_sL0, ']');
-    set_param(strcat(g_sParent, '/', g_sName, '/Distributed Parameters Line'), 'Inductance', l_cInductance{1});
+    l_sInductance = strcat('[', l_sL, {' '}, l_sL0, ']');
     
-    % Reset the other values of the Distributed Parameters Line.
-    set_param(strcat(g_sParent, '/', g_sName, '/Distributed Parameters Line'), 'Frequency', l_sF, 'Capacitance', '[0 0]');
+    % Create this ACLineSegment.
+    l_cPos = getPositionIndex(g_cBlocks{l_iI, 4});
+    l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
+    l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
+    l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
+    add_block('powerlib/Elements/Distributed Parameters Line', strcat(l_sParent, '/', g_sName), 'Position', l_aPosition);
+    set_param(strcat(l_sParent, '/', g_sName), 'Description', g_sDescription, 'Phases', g_sPhases, 'Length', g_sLength, 'Resistance', l_sResistance{1}, 'Inductance', l_sInductance{1}, 'Frequency', l_sFrequency, 'Capacitance', l_sCapacitance);
+    
+    % Update g_cBlocks and g_cTemporaryBlocks.
+    g_cBlocks{l_iI, 4} = g_cBlocks{l_iI, 4} + 1;
+    g_cBlocks = vertcat(g_cBlocks, {g_cObjects{g_iIterator}, g_sName, l_sParent, 0});
+    if(strcmp(l_sParent, ''))
+        g_cTemporaryBlocks = vertcat(g_cTemporaryBlocks, {g_cObjects{g_iIterator}, g_sName, l_sParent});
+    end
     
     % Clean up everything, that is not needed anymore.
     clearvars -global -except g_iHeight g_iIterator g_iOffset g_iWidth g_dSystem g_sTitle g_cBlocks g_cObjects g_cTemporaryBlocks;
@@ -797,13 +852,15 @@ function createBaseVoltage()
             l_sParent = '';
         end
     end
-    for l_iI = 1 : size(g_cBlocks)
-        if(strcmp(g_cBlocks{l_iI}, l_sParent))
-            l_sP = strcat(g_cBlocks{l_iI, 3}, '/', g_cBlocks{l_iI, 2});
-            break;
+    if(~strcmp(l_sParent, ''))
+        for l_iI = 1 : size(g_cBlocks)
+            if(strcmp(l_sParent, g_cBlocks{l_iI}))
+                l_sP = strcat(g_cBlocks{l_iI, 3}, '/', g_cBlocks{l_iI, 2});
+                break;
+            end
         end
     end
-    if(~exist('l_sP', 'var') || strcmp(l_sP, strcat('/', g_sTitle)))
+    if(~exist('l_sP', 'var'))
         l_sP = g_sTitle;
         l_iI = 1;
     end
@@ -815,31 +872,29 @@ function createBaseVoltage()
     else
         l_bIsDC = false;
     end
+    
     % Create this BaseVoltage.
-    % @BaseVoltage.nominalVoltage:
-    % The nominal voltage (in V).
     l_cPos = getPositionIndex(g_cBlocks{l_iI, 4});
     l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
     l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
     l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
     if(l_bIsDC)
         add_block('fl_lib/Electrical/Electrical Sources/DC Voltage Source', strcat(l_sP, '/', g_sName), 'Position', l_aPosition);
-        set_param(strcat(l_sP, '/', g_sName), 'v0', l_sNominalVoltage);
+        set_param(strcat(l_sP, '/', g_sName), 'Description', g_sDescription, 'v0', l_sNominalVoltage);
     else
         add_block('fl_lib/Electrical/Electrical Sources/AC Voltage Source', strcat(l_sP, '/', g_sName), 'Position', l_aPosition);
-        set_param(strcat(l_sP, '/', g_sName), 'amp', l_sNominalVoltage);
+        set_param(strcat(l_sP, '/', g_sName), 'Description', g_sDescription, 'amp', l_sNominalVoltage);
     end
-    % @IdentifiedObject.description:
-    % The description of this BaseVoltage.
-    set_param(strcat(l_sP, '/', g_sName), 'Description', g_sDescription);
     
-    % Clean up everything, that is not needed anymore.
+    % Update g_cBlocks and g_cTemporaryBlocks.
     g_cBlocks{l_iI, 4} = g_cBlocks{l_iI, 4} + 1;
     g_cBlocks = vertcat(g_cBlocks, {g_cObjects{g_iIterator, 2}, g_sName, l_sP, 0});
     if(strcmp(l_sP, g_sTitle))
         g_cTemporaryBlocks = vertcat(g_cTemporaryBlocks, {g_cObjects{g_iIterator, 2}, g_sName, l_sP});
     end
-    clearvars;
+    
+    % Clean up everything, that is not needed anymore.
+    clearvars -global -except g_iHeight g_iIterator g_iOffset g_iWidth g_dSystem g_sTitle g_cBlocks g_cObjects g_cTemporaryBlocks;
 
 end % End of function 'createBaseVoltage'.
 
@@ -1287,24 +1342,21 @@ end % End of function 'createBusbarSection'.
 function createConductingEquipment()
 
     % Use global variables.
-    global g_cAttributes g_cBlocks g_cObjects;
+    global g_cAttributes;
     
     % Make variables global.
     global g_sBaseVoltage g_sPhases g_sTerminals;
     
-    % Attributes of...
-    % ...IdentifiedObject:
-    global g_sName;
-    % ...Equipment:
-    global g_sParent;
-    % ...ConductingEquipment:
+    % Attributes:
     g_sBaseVoltage = '';
     g_sPhases = 'A';
     g_sTerminals = '';
     
-    parseAttributes();
     createEquipment();
     
+    % @Note:
+    % 'g_cAttributes' is parsed in create-functions of more specialized
+    % classes.
     % Identify attributes.
     for l_iI = 1 : size(g_cAttributes)
         l_cFind = strfind(g_cAttributes{l_iI}, 'cim:ConductingEquipment.BaseVoltage');
@@ -1353,85 +1405,6 @@ function createConductingEquipment()
         end
     end % End of for.
     
-    % This is used to get the position of the correct Subsystem.
-    l_cSize = size(g_cBlocks);
-    
-    % @ConductingEquipment.BaseVoltage:
-    % The BaseVoltage for this ConductingEquipment. It is only used, if
-    % this ConductingEquipment is not contained by a VoltageLevel.
-    % Check whether the parent is a VoltageLevel.
-    l_cSize2 = size(strfind(g_sParent, '/'));
-    for l_iJ = 1 : size(g_cBlocks)
-        if(strcmp(g_cBlocks{l_iJ, 2}, g_sParent(l_cSize2(2) + 1 : end)))
-            l_sID = g_cBlocks{l_iJ};
-            break;
-        end
-    end
-    % If the parent is a VoltageLevel, get its BaseVoltage.
-    if(exist('l_sID', 'var'))
-        for l_iJ = 1 : size(g_cObjects)
-            if(strcmp(g_cObjects{l_iJ, 2}, l_sID))
-                if(strcmp(g_cObjects{l_iJ}, 'VoltageLevel'))
-                    l_cSize2 = size(strfind(g_cObjects{l_iJ, 3}, 'BaseVoltage'));
-                    l_cSize3 = size(strfind(g_cObjects{l_iJ, 3}, '/>'));
-                    for l_iK = 1 : l_cSize3(2)
-                        if(l_cSize3(1, l_iK) > l_cSize2(1))
-                            g_sBaseVoltage = g_cObjects{l_iJ, 3}(l_cSize2(1) + 27 : l_cSize3(1, l_iK) - 2);
-                            break;
-                        end
-                    end
-                end
-                break;
-            end
-        end
-    end
-    % If the BaseVoltage is a temporary block, copy it. This is done
-    % automatically by calling 'copyBlocks'.
-    g_cBlocks{l_cSize(1), 4} = copyBlocks(g_sBaseVoltage, strcat(g_sParent, '/', g_sName), g_cBlocks{l_cSize(1), 4}, false);
-    % @ConductingEquipment.phases:
-    % The carried phases of this ConductingEquipment.
-    switch(g_sPhases)
-        case ('A')
-            g_sPhases = '1';
-        case ('AB')
-            g_sPhases = '2';
-        case ('ABC')
-            g_sPhases = '3';
-        case ('ABCN')
-            g_sPhases = '3';
-        case ('ABN')
-            g_sPhases = '2';
-        case ('AC')
-            g_sPhases = '2';
-        case ('ACN')
-            g_sPhases = '2';
-        case ('AN')
-            g_sPhases = '1';
-        case ('B')
-            g_sPhases = '1';
-        case ('BC')
-            g_sPhases = '2';
-        case ('BCN')
-            g_sPhases = '2';
-        case ('BN')
-            g_sPhases = '1';
-        case ('C')
-            g_sPhases = '1';
-        case ('CN')
-            g_sPhases = '1';
-        case ('splitSecondary12N')
-            g_sPhases = '2';
-        case ('splitSecondary1N')
-            g_sPhases = '1';
-        case ('splitSecondary2N')
-            g_sPhases = '1';
-        otherwise
-            g_sPhases = '1';
-    end
-    % @ConductingEquipment.Terminals:
-    % Every ConductingEquipment has one or two Terminals.
-    g_cBlocks{l_cSize(1), 4} = copyBlocks(g_sTerminals, strcat(g_sParent, '/', g_sName), g_cBlocks{l_cSize(1), 4});
-    
     % Clean up everything, that is not needed anymore.
     clearvars;
 
@@ -1448,9 +1421,11 @@ function createConductor()
     % Attributes:
     g_sLength = '0.0';
     
-    parseAttributes();
     createConductingEquipment();
     
+    % @Note:
+    % 'g_cAttributes' is parsed in create-functions of more specialized
+    % classes.
     % Identify attributes.
     for l_iI = 1 : size(g_cAttributes)
         l_cFind = strfind(g_cAttributes{l_iI}, 'cim:Conductor.length');
@@ -1515,32 +1490,35 @@ function createConnectivityNode()
     % ConnectivityNode.ConnectivityNodeContainer doesn't exist, this
     % ConnectivityNode will be created temporarily at the top level of the
     % system.
-    for l_iI = 1 : size(g_cBlocks)
-        if(strcmp(g_cBlocks{l_iI, 1}, l_sConnectivityNodeContainer))
-            l_sParent = strcat(g_cBlocks{l_iI, 3}, '/', g_cBlocks{l_iI, 2});
-            break;
+    if(~strcmp(l_sConnectivityNodeContainer, ''))
+        for l_iI = 1 : size(g_cBlocks)
+            if(strcmp(l_sConnectivityNodeContainer, g_cBlocks{l_iI}))
+                l_sParent = strcat(g_cBlocks{l_iI, 3}, '/', g_cBlocks{l_iI, 2});
+                break;
+            end
         end
     end
-    if(~exist('l_sParent', 'var') || strcmp(l_sParent, strcat('/', g_sTitle)))
+    if(~exist('l_sParent', 'var'))
         l_sParent = g_sTitle;
         l_iI = 1;
     end
+    
     % Create this ConnectivityNode.
     l_cPos = getPositionIndex(g_cBlocks{l_iI, 4});
     l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
     l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
     l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
     add_block('built-in/Subsystem', strcat(l_sParent, '/', g_sName), 'Position', l_aPosition);
-    % @IdentifiedObject.description:
-    % In Simulink, the description is stored in the Subsystem.
     set_param(strcat(l_sParent, '/', g_sName), 'Description', g_sDescription);
     
-    % Clean up everything, that is not needed anymore.
+    % Update g_cBlocks and g_cTemporaryBlocks.
     g_cBlocks{l_iI, 4} = g_cBlocks{l_iI, 4} + 1;
     g_cBlocks = vertcat(g_cBlocks, {g_cObjects{g_iIterator, 2}, g_sName, l_sParent, 0});
     if(strcmp(l_sParent, g_sTitle))
         g_cTemporaryBlocks = vertcat(g_cTemporaryBlocks, {g_cObjects{g_iIterator, 2}, g_sName, l_sParent});
     end
+    
+    % Clean up everything, that is not needed anymore.
     clearvars -global -except g_iHeight g_iIterator g_iOffset g_iWidth g_dSystem g_sTitle g_cBlocks g_cObjects g_cTemporaryBlocks;
 
 end % End of function 'createConnectivityNode'.
@@ -1556,9 +1534,11 @@ function createConnectivityNodeContainer()
     % Attributes:
     g_sConnectivityNodes = '';
     
-    parseAttributes();
     createPowerSystemResource();
     
+    % @Note:
+    % 'g_cAttributes' is parsed in create-functions of more specialized
+    % classes.
     % Identify attributes.
     for l_iI = 1 : size(g_cAttributes)
         l_cFind = strfind(g_cAttributes{l_iI}, 'cim:ConnectivityNodeContainer.ConnectivityNodes');
@@ -1830,20 +1810,156 @@ function createDisconnector()
 
 end % End of function 'createDisconnector'.
 
-function createEquipment()
+% @TODO: Implement internal impedance.
+function createEnergySource()
 
     % Use global variables.
-    global g_iHeight g_iIterator g_iOffset g_iWidth g_sTitle g_cAttributes g_cBlocks g_cObjects g_cTemporaryBlocks;
-    
-    % Make variables global.
-    global g_sParent;
+    global g_iHeight g_iIterator g_iOffset g_iWidth g_cAttributes g_cBlocks g_cObjects g_cTemporaryBlocks;
     
     % Attributes of...
     % ...IdentifiedObject:
     global g_sDescription g_sName;
     % ...Equipment:
-    l_sEquipmentContainer = '';
-    g_sParent = '';
+    global g_sEquipmentContainer;
+    % ...ConductingEquipment:
+    global g_sPhases;
+    % ...EnergySource:
+    l_sFrequency = '50.0';
+    l_sInternalConnection = 'Y';
+    l_sNominalVoltage = '0.0';
+    l_sR = '0.0';
+    l_sShortCircuitLevel = '0.0';
+    l_sSpecifyImpedance = 'on';
+    l_sVoltageAngle = '0';
+    l_sX = '0.0';
+    l_sXRRatio = '0.0';
+    
+    parseAttributes();
+    createConductingEquipment();
+    
+    % Identify attributes.
+    for l_iI = 1 : size(g_cAttributes)
+        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:EnergySource.activePower');
+        if(size(l_cFind) > 0)
+            % @Note:
+            % Currently not used.
+            %l_sActivePower = g_cAttributes{l_iI}(l_cFind(1) + 29 : l_cFind(2) - 3);
+            continue;
+        end
+        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:EnergySource.nominalVoltage');
+        if(size(l_cFind) > 0)
+            l_sNominalVoltage = g_cAttributes{l_iI}(l_cFind(1) + 32 : l_cFind(2) - 3);
+            continue;
+        end
+        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:EnergySource.r0');
+        if(size(l_cFind) > 0)
+            % @Note:
+            % Currently not used.
+            %l_sR0 = g_cAttributes{l_iI}(l_cFind(1) + 20 : l_cFind(2) - 3);
+            continue;
+        end
+        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:EnergySource.rn');
+        if(size(l_cFind) > 0)
+            % @Note:
+            % Currently not used.
+            %l_sRn = g_cAttributes{l_iI}(l_cFind(1) + 20 : l_cFind(2) - 3);
+            continue;
+        end
+        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:EnergySource.r');
+        if(size(l_cFind) > 0)
+            l_sR = g_cAttributes{l_iI}(l_cFind(1) + 19 : l_cFind(2) - 3);
+            continue;
+        end
+        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:EnergySource.voltageAngle');
+        if(size(l_cFind) > 0)
+            l_sVoltageAngle = g_cAttributes{l_iI}(l_cFind(1) + 30 : l_cFind(2) - 3);
+            continue;
+        end
+        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:EnergySource.voltageMagnitude');
+        if(size(l_cFind) > 0)
+            % @Note:
+            % Currently not used.
+            %l_sVoltageMagnitude = g_cAttributes{l_iI}(l_cFind(1) + 34 : l_cFind(2) - 3);
+            continue;
+        end
+        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:EnergySource.x0');
+        if(size(l_cFind) > 0)
+            % @Note:
+            % Currently not used.
+            %l_sX0 = g_cAttributes{l_iI}(l_cFind(1) + 20 : l_cFind(2) - 3);
+            continue;
+        end
+        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:EnergySource.xn');
+        if(size(l_cFind) > 0)
+            % @Note:
+            % Currently not used.
+            %l_sXn = g_cAttributes{l_iI}(l_cFind(1) + 20 : l_cFind(2) - 3);
+            continue;
+        end
+        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:EnergySource.x');
+        if(size(l_cFind) > 0)
+            l_sX = g_cAttributes{l_iI}(l_cFind(1) + 19 : l_cFind(2) - 3);
+            continue;
+        end
+    end % End of for.
+    
+    % @Equipment.EquipmentContainer:
+    % Every Equipment must be contained by a EquipmentContainer. If
+    % Equipment.EquipmentContainer doesn't exist, this Equipment will be
+    % created temporarily at the top level of the system.
+    if(~strcmp(g_sEquipmentContainer, ''))
+        for l_iI = 1 : size(g_cBlocks)
+            if(strcmp(g_sEquipmentContainer, g_cBlocks{l_iI}))
+                l_sParent = strcat(g_cBlocks{l_iI, 3}, '/', g_cBlocks{l_iI, 2});
+                break;
+            end
+        end
+    end
+    if(~exist('l_sParent', 'var'))
+        l_sParent = g_sTitle;
+        l_iI = 1;
+    end
+    % @ConductingEquipment.phases:
+    % The internal connection of this EnergySource.
+    if(strfind(g_sPhases, 'N'))
+        l_sInternalConnection = 'Yg';
+    end
+    % @EnergySource.r, @EnergySource.x:
+    % If one of these values is defined, they will be set.
+    if(~strcmp(l_sR, '0.0') && ~strcmp(l_sX, '0.0'))
+        l_sXRRatio = num2str(str2double(l_sX) / str2double(l_sR));
+    end
+    
+    % Create this EnergySource.
+    l_cPos = getPositionIndex(g_cBlocks{l_iI, 4});
+    l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
+    l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
+    l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
+    add_block('powerlib/Electrical Sources/Three-Phase Source', strcat(g_sParent, '/', g_sName), 'Position', l_aPosition);
+    set_param(strcat(l_sParent, '/', g_sName), 'Description', g_sDescription, 'InternalConnection', l_sInternalConnection, 'Voltage', l_sNominalVoltage, 'PhaseAngel', l_sVoltageAngle, 'Frequency', l_sFrequency, 'SpecifyImpedance', l_sSpecifyImpedance, 'ShortCircuitLevel', l_sShortCircuitLevel, 'BaseVoltage', l_sNominalVoltage, 'XRatio', l_sXRRatio);
+    
+    % Update g_cBlocks and g_cTemporaryBlocks.
+    g_cBlocks{l_iI, 4} = g_cBlocks{l_iI, 4} + 1;
+    g_cBlocks = vertcat(g_cBlocks, {g_cObjects{g_iIterator}, g_sName, l_sParent, 0});
+    if(strcmp(l_sParent, ''))
+        g_cTemporaryBlocks = vertcat(g_cTemporaryBlocks, {g_cObjects{g_iIterator}, g_sName, l_sParent});
+    end
+    
+    % Clean up everything, that is not needed anymore.
+    clearvars -global -except g_iHeight g_iIterator g_iOffset g_iWidth g_dSystem g_sTitle g_cBlocks g_cObjects g_cTemporaryBlocks;
+
+end % End of function 'createEnergySource'.
+
+function createEquipment()
+
+    % Use global variables.
+    global g_cAttributes;
+    
+    % Make variables global.
+    global g_sEquipmentContainer;
+    
+    % Attributes:
+    g_sEquipmentContainer = '';
     
     createPowerSystemResource();
     
@@ -1851,41 +1967,41 @@ function createEquipment()
     % 'g_cAttributes' is parsed in create-functions of more specialized
     % classes.
     % Identify attributes.
-    for l_iI = 1 : size(g_cAttributes)
-        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:Equipment.aggregate');
+    for g_iI = 1 : size(g_cAttributes)
+        l_cFind = strfind(g_cAttributes{g_iI}, 'cim:Equipment.aggregate');
         if(size(l_cFind) > 0)
             % @Note:
             % Currently not used.
             %l_sAggregate = l_cAttributes{l_iI}(l_cFind(1) + 24 : l_cFind(2) - 3);
             continue;
         end
-        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:Equipment.ContingencyEquipment');
+        l_cFind = strfind(g_cAttributes{g_iI}, 'cim:Equipment.ContingencyEquipment');
         if(size(l_cFind) > 0)
             % @Note:
             % Currently not used.
             %l_sContingencyEquipment = l_cAttributes{l_iI}(l_cFind(1) + 50 : end - 3);
             continue;
         end
-        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:Equipment.CustomerAgreements');
+        l_cFind = strfind(g_cAttributes{g_iI}, 'cim:Equipment.CustomerAgreements');
         if(size(l_cFind) > 0)
             % @Note:
             % Currently not used.
             %l_sCustomerAgreements = l_cAttributes{l_iI}(l_cFind(1) + 48 : end - 3);
             continue;
         end
-        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:Equipment.EquipmentContainer');
+        l_cFind = strfind(g_cAttributes{g_iI}, 'cim:Equipment.EquipmentContainer');
         if(size(l_cFind) > 0)
-            l_sEquipmentContainer = g_cAttributes{l_iI}(l_cFind(1) + 48 : end - 3);
+            g_sEquipmentContainer = g_cAttributes{g_iI}(l_cFind(1) + 48 : end - 3);
             continue;
         end
-        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:Equipment.normallyInService');
+        l_cFind = strfind(g_cAttributes{g_iI}, 'cim:Equipment.normallyInService');
         if(size(l_cFind) > 0)
             % @Note:
             % Currently not used.
             %l_sNormallyInService = l_cAttributes{l_iI}(l_cFind(1) + 32 : l_cFind(2) - 3);
             continue;
         end
-        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:Equipment.OperationalLimitSet');
+        l_cFind = strfind(g_cAttributes{g_iI}, 'cim:Equipment.OperationalLimitSet');
         if(size(l_cFind) > 0)
             % @Note:
             % Currently not used.
@@ -1894,36 +2010,7 @@ function createEquipment()
         end
     end % End of for.
     
-    % @Equipment.EquipmentContainer:
-    % Every Equipment must be contained by an EquipmentContainer. If
-    % Equipment.EquipmentContainer doesn't exist, this Equipment will be
-    % created temporarily at the top level of this system.
-    for l_iI = 1 : size(g_cBlocks)
-        if(strcmp(g_cBlocks{l_iI, 1}, l_sEquipmentContainer))
-            g_sParent = strcat(g_cBlocks{l_iI, 3}, '/', g_cBlocks{l_iI, 2});
-            break;
-        end
-    end
-    if(strcmp(g_sParent, '') || strcmp(g_sParent, strcat('/', g_sTitle)))
-        g_sParent = g_sTitle;
-        l_iI = 1;
-    end
-    % Create the Subsystem for this Equipment.
-    l_cPos = getPositionIndex(g_cBlocks{l_iI, 4});
-    l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
-    l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
-    l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
-    add_block('built-in/Subsystem', strcat(g_sParent, '/', g_sName), 'Position', l_aPosition);
-    % @IdentifiedObject.description:
-    % In Simulink, the description is stored in the Subsystem.
-    set_param(strcat(g_sParent, '/', g_sName), 'Description', g_sDescription);
-    
     % Clean up everything, that is not needed anymore.
-    g_cBlocks{l_iI, 4} = g_cBlocks{l_iI, 4} + 1;
-    g_cBlocks = vertcat(g_cBlocks, {g_cObjects{g_iIterator, 2}, g_sName, g_sParent, 0});
-    if(strcmp(g_sParent, g_sTitle))
-        g_cTemporaryBlocks = vertcat(g_cTemporaryBlocks, {g_cObjects{g_iIterator, 2}, g_sName, g_sParent});
-    end
     clearvars;
 
 end % End of function 'createEquipment'.
@@ -1939,9 +2026,11 @@ function createEquipmentContainer()
     % Attributes:
     g_sEquipments = '';
     
-    parseAttributes();
     createConnectivityNodeContainer();
     
+    % @Note:
+    % 'g_cAttributes' is parsed in create-functions of more specialized
+    % classes.
     % Identify attributes.
     for l_iI = 1 : size(g_cAttributes)
         l_cFind = strfind(g_cAttributes{l_iI}, 'cim:EquipmentContainer.Equipments');
@@ -1988,17 +2077,18 @@ function createGeographicalRegion()
     l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
     l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
     add_block('built-in/Subsystem', strcat(g_sTitle, '/', g_sName), 'Position', l_aPosition);
-    % @IdentifiedObject.description:
-    % In Simulink, the description is stored in the Subsystem.
     set_param(strcat(g_sTitle, '/', g_sName), 'Description', g_sDescription);
+    
     % @GeographicalRegion.Regions:
     % The SubGeographicalRegions, which are contained by this
     % GeographicalRegion.
     l_iBlocks = copyBlocks(l_sRegions, strcat(g_sTitle, '/', g_sName), l_iBlocks);
     
-    % Clean up everything, that is not needed anymore.
+    % Update g_cBlocks.
     g_cBlocks{1, 4} = g_cBlocks{1, 4} + 1;
     g_cBlocks = vertcat(g_cBlocks, {g_cObjects{g_iIterator, 2}, g_sName, g_sTitle, l_iBlocks});
+    
+    % Clean up everything, that is not needed anymore.
     clearvars -global -except g_iHeight g_iIterator g_iOffset g_iWidth g_dSystem g_sTitle g_cBlocks g_cObjects g_cTemporaryBlocks;
 
 end % End of function 'createGeographicalRegion'.
@@ -2063,9 +2153,9 @@ function createIdentifiedObject()
     % The name of the block in following format: IdentifiedObject.name
     % (IdentifiedObject.aliasName). If both variables doesn't exist, it's
     % the name of the class, followed by the value of 'g_iIterator'.
-    g_sName = [g_sName, ' (', l_sAliasName, ')'];
+    g_sName = strcat(g_sName, ' (', l_sAliasName, ')');
     if(strcmp(g_sName, ' ()'))
-        g_sName = [g_cObjects{g_iIterator}, g_iIterator];
+        g_sName = strcat(g_cObjects{g_iIterator}, g_iIterator);
     end
     
     % Clean up everything, that is not needed anymore.
@@ -2108,25 +2198,27 @@ function createLine()
     % Every Line must be contained by a SubGeographicalRegion. If
     % Line.Region doesn't exist, this Line will be created temporarily at
     % the top level of the system.
-    for l_iI = 1 : size(g_cBlocks)
-        if(strcmp(g_cBlocks{l_iI, 1}, l_sRegion))
-            l_sParent = strcat(g_cBlocks{l_iI, 3}, '/', g_cBlocks{l_iI, 2});
-            break;
+    if(~strcmp(l_sRegion, ''))
+        for l_iI = 1 : size(g_cBlocks)
+            if(strcmp(l_sRegion, g_cBlocks{l_iI}))
+                l_sParent = strcat(g_cBlocks{l_iI, 3}, '/', g_cBlocks{l_iI, 2});
+                break;
+            end
         end
     end
-    if(~exist('l_sParent', 'var') || strcmp(l_sParent, strcat('/', g_sTitle)))
+    if(~exist('l_sParent', 'var'))
         l_sParent = g_sTitle;
         l_iI = 1;
     end
+    
     % Create this Line.
     l_cPos = getPositionIndex(g_cBlocks{l_iI, 4});
     l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
     l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
     l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
     add_block('built-in/Subsystem', strcat(l_sParent, '/', g_sName), 'Position', l_aPosition);
-    % @IdentifiedObject.description:
-    % In Simulink, the description is stored in the Subsystem.
     set_param(strcat(l_sParent, '/', g_sName), 'Description', g_sDescription);
+    
     % @ConnectivityNodeContainer.ConnectivityNodes:
     % The ConnectivityNodes, which are contained by this Substation.
     l_iBlocks = copyBlocks(g_sConnectivityNodes, strcat(l_sParent, '/', g_sName), l_iBlocks);
@@ -2134,12 +2226,14 @@ function createLine()
     % The Equipments, which are contained by this Substation.
     l_iBlocks = copyBlocks(g_sEquipments, strcat(l_sParent, '/', g_sName), l_iBlocks);
     
-    % Clean up everything, that is not needed anymore.
+    % Update g_cBlocks and g_cTemporaryBlocks.
     g_cBlocks{l_iI, 4} = g_cBlocks{l_iI, 4} + 1;
     g_cBlocks = vertcat(g_cBlocks, {g_cObjects{g_iIterator, 2}, g_sName, l_sParent, l_iBlocks});
     if(strcmp(l_sParent, g_sTitle))
         g_cTemporaryBlocks = vertcat(g_cTemporaryBlocks, {g_cObjects{g_iIterator, 2}, g_sName, l_sParent});
     end
+    
+    % Clean up everything, that is not needed anymore.
     clearvars -global -except g_iHeight g_iIterator g_iOffset g_iWidth g_dSystem g_sTitle g_cBlocks g_cObjects g_cTemporaryBlocks;
 
 end % End of function 'createLine'.
@@ -2993,25 +3087,27 @@ function createSubGeographicalRegion()
     % GeographicalRegion. If SubGeographicalRegion.Region doesn't exist,
     % this SubGeographicalRegion will be created temporarily at the top
     % level of the system.
-    for l_iI = 1 : size(g_cBlocks)
-        if(strcmp(g_cBlocks{l_iI, 1}, l_sRegion))
-            l_sParent = strcat(g_cBlocks{l_iI, 3}, '/', g_cBlocks{l_iI, 2});
-            break;
+    if(~strcmp(l_sRegion, ''))
+        for l_iI = 1 : size(g_cBlocks)
+            if(strcmp(l_sRegion, g_cBlocks{l_iI}))
+                l_sParent = strcat(g_cBlocks{l_iI, 3}, '/', g_cBlocks{l_iI, 2});
+                break;
+            end
         end
     end
-    if(~exist('l_sParent', 'var') || strcmp(l_sParent, strcat('/', g_sTitle)))
+    if(~exist('l_sParent', 'var'))
         l_sParent = g_sTitle;
         l_iI = 1;
     end
+    
     % Create this SubGeographicalRegion.
     l_cPos = getPositionIndex(g_cBlocks{l_iI, 4});
     l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
     l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
     l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
     add_block('built-in/Subsystem', strcat(l_sParent, '/', g_sName), 'Position', l_aPosition);
-    % @IdentifiedObject.description:
-    % In Simulink, the description is stored in the Subsystem.
     set_param(strcat(l_sParent, '/', g_sName), 'Description', g_sDescription);
+    
     % @SubGeographicalRegion.Substations:
     % The Substations, which are contained by this SubGeographicalRegion.
     l_iBlocks = copyBlocks(l_sSubstations, strcat(l_sParent, '/', g_sName), l_iBlocks);
@@ -3019,12 +3115,14 @@ function createSubGeographicalRegion()
     % The Lines, which are contained by this SubGeographicalRegion.
     l_iBlocks = copyBlocks(l_sLines, strcat(l_sParent, '/', g_sName), l_iBlocks);
     
-    % Clean up everything, that is not needed anymore.
+    % Update g_cBlocks and g_cTemporaryBlocks
     g_cBlocks{l_iI, 4} = g_cBlocks{l_iI, 4} + 1;
     g_cBlocks = vertcat(g_cBlocks, {g_cObjects{g_iIterator, 2}, g_sName, l_sParent, l_iBlocks});
     if(strcmp(l_sParent, g_sTitle))
         g_cTemporaryBlocks = vertcat(g_cTemporaryBlocks, {g_cObjects{g_iIterator, 2}, g_sName, l_sParent});
     end
+    
+    % Clean up everything, that is not needed anymore.
     clearvars -global -except g_iHeight g_iIterator g_iOffset g_iWidth g_dSystem g_sTitle g_cBlocks g_cObjects g_cTemporaryBlocks;
 
 end % End of function 'createSubGeographicalRegion'.
@@ -3077,25 +3175,27 @@ function createSubstation()
     % Every Substation must be contained by a SubGeographicalRegion. If
     % Substation.Region doesn't exist, this Substation will be created
     % temporarily at the top level of the system.
-    for l_iI = 1 : size(g_cBlocks)
-        if(strcmp(g_cBlocks{l_iI, 1}, l_sRegion))
-            l_sParent = strcat(g_cBlocks{l_iI, 3}, '/', g_cBlocks{l_iI, 2});
-            break;
+    if(~strcmp(l_sRegion, ''))
+        for l_iI = 1 : size(g_cBlocks)
+            if(strcmp(l_sRegion, g_cBlocks{l_iI}))
+                l_sParent = strcat(g_cBlocks{l_iI, 3}, '/', g_cBlocks{l_iI, 2});
+                break;
+            end
         end
     end
-    if(~exist('l_sParent', 'var') || strcmp(l_sParent, strcat('/', g_sTitle)))
+    if(~exist('l_sParent', 'var'))
         l_sParent = g_sTitle;
         l_iI = 1;
     end
+    
     % Create this Substation.
     l_cPos = getPositionIndex(g_cBlocks{l_iI, 4});
     l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
     l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
     l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
     add_block('built-in/Subsystem', strcat(l_sParent, '/', g_sName), 'Position', l_aPosition);
-    % @IdentifiedObject.description:
-    % In Simulink, the description is stored in the Subsystem.
     set_param(strcat(l_sParent, '/', g_sName), 'Description', g_sDescription);
+    
     % @ConnectivityNodeContainer.ConnectivityNodes:
     % The ConnectivityNodes, which are contained by this Substation.
     l_iBlocks = copyBlocks(g_sConnectivityNodes, strcat(l_sParent, '/', g_sName), l_iBlocks);
@@ -3106,12 +3206,14 @@ function createSubstation()
     % The VoltageLevels, which are contained by this Substation.
     l_iBlocks = copyBlocks(l_sVoltageLevels, strcat(l_sParent, '/', g_sName), l_iBlocks);
     
-    % Clean up everything, that is not needed anymore.
+    % Update g_cBlocks and g_cTemporaryBlocks.
     g_cBlocks{l_iI, 4} = g_cBlocks{l_iI, 4} + 1;
     g_cBlocks = vertcat(g_cBlocks, {g_cObjects{g_iIterator, 2}, g_sName, l_sParent, l_iBlocks});
     if(strcmp(l_sParent, g_sTitle))
         g_cTemporaryBlocks = vertcat(g_cTemporaryBlocks, {g_cObjects{g_iIterator, 2}, g_sName, l_sParent});
     end
+    
+    % Clean up everything, that is not needed anymore.
     clearvars -global -except g_iHeight g_iIterator g_iOffset g_iWidth g_dSystem g_sTitle g_cBlocks g_cObjects g_cTemporaryBlocks;
 
 end % End of function 'createSubstation'.
