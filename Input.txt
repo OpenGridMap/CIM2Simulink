@@ -52,7 +52,7 @@
 		<cim:GeneratingUnit.minOperatingP>10</cim:GeneratingUnit.minOperatingP>
 		<cim:IdentifiedObject.name>GT1</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>GT1</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUBSTATION1"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUBSTATION1"/>
 	</cim:ThermalGeneratingUnit>	
 	   <cim:SynchronousMachine rdf:ID="_ID_SUB1_ShynchMachine_Gen1">
 		<cim:SynchronousMachine.maxQ>800</cim:SynchronousMachine.maxQ>
@@ -65,7 +65,7 @@
 		<cim:IdentifiedObject.aliasName>GEN_1</cim:IdentifiedObject.aliasName>
 		<cim:SynchronousMachine.MemberOf_GeneratingUnit rdf:resource="#_ID_SUB1_GenUnit1"/>
 		<cim:RegulatingCondEq.RegulatingControl rdf:resource="#_8230B69E80F9402FA09E7D3D8B547CB6"/>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB1_VLevel_15KV_EEF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB1_VLevel_15KV_EEF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_15KV"/>
 	   </cim:SynchronousMachine>	
 	   <cim:Terminal rdf:ID="_GEN1C5712A0D2F431594B0638457202CBC">
@@ -110,7 +110,7 @@
 	<cim:PowerTransformer rdf:ID="_ID_PowerXfr_TR1">
 		<cim:IdentifiedObject.name>TR1</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>TR1</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUBSTATION1"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUBSTATION1"/>
 	</cim:PowerTransformer>	
 	   <cim:TransformerWinding rdf:ID="_ID_TR1_W1">
 		<cim:TransformerWinding.g>0</cim:TransformerWinding.g>
@@ -166,7 +166,7 @@
 	<cim:BusbarSection rdf:ID="_ID_SUB1_BUS1_2F6957E4EF4559BF7EB">
 		<cim:IdentifiedObject.name>Sub1-BUS</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>Sub1-BUS</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB1_VLevel_220KV_EF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB1_VLevel_220KV_EF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
 	</cim:BusbarSection>	
 	   <cim:Terminal rdf:ID="_BUS1C5712A0D2F431594B0638457202CBC">
@@ -186,7 +186,7 @@
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Breaker B1</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>B1</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB1_VLevel_220KV_EF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB1_VLevel_220KV_EF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
 	</cim:Breaker>	
 	   <cim:Terminal rdf:ID="_B11EC5712A0D2F431594B0638457202CBC">
@@ -217,7 +217,7 @@
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Breaker B4</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>B4</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB1_VLevel_220KV_EF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB1_VLevel_220KV_EF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
 	</cim:Breaker>	
 	   <cim:Terminal rdf:ID="_B41EC5712A0D2F431594B0638457202CBC">
@@ -247,7 +247,7 @@
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Disconnector S1</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>S1</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB1_VLevel_220KV_EF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB1_VLevel_220KV_EF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
 	</cim:Disconnector>	
 	   <cim:Terminal rdf:ID="_S12EC5712A0D2F431594B0638457202CBC">
@@ -267,7 +267,7 @@
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Disconnector S2</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>S2</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB1_VLevel_220KV_EF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB1_VLevel_220KV_EF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
 	</cim:Disconnector>	
 	   <cim:Terminal rdf:ID="_S21EC5712A0D2F431594B0638457202CBC">
@@ -287,7 +287,7 @@
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Disconnector S5</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>S5</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB1_VLevel_220KV_EF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB1_VLevel_220KV_EF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
 	</cim:Disconnector>
 	   <cim:Terminal rdf:ID="_S51EC5712A0D2F431594B0638457202CBC">
@@ -307,7 +307,7 @@
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Disconnector S6</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>S6</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB1_VLevel_220KV_EF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB1_VLevel_220KV_EF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
 	</cim:Disconnector>	
 	   <cim:Terminal rdf:ID="_S61EC5712A0D2F431594B0638457202CBC">
@@ -327,7 +327,7 @@
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Disconnector S15</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>S15</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB1_VLevel_15KV_EEF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB1_VLevel_15KV_EEF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_15KV"/>
 	</cim:Disconnector>	
 	   <cim:Terminal rdf:ID="_S15EC5712A0D2F431594B0638457202CBC">
@@ -347,7 +347,7 @@
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Disconnector S16</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>S16</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB1_VLevel_220KV_EF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB1_VLevel_220KV_EF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
 	</cim:Disconnector>	
 	   <cim:Terminal rdf:ID="_S16EC5712A0D2F431594B0638457202CBC">
@@ -383,7 +383,7 @@
 		<cim:EnergyConsumer.qfixedPct>100</cim:EnergyConsumer.qfixedPct>
 		<cim:IdentifiedObject.name>Sub2_Load</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>Sub2_Load</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB2_VLevel_220KV_EF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB2_VLevel_220KV_EF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
 	</cim:NonConformLoad>	
 	   <cim:Terminal rdf:ID="_LOADC5712A0D2F431594B0638457202CBC">
@@ -421,7 +421,7 @@
 	<cim:BusbarSection rdf:ID="_ID_SUB2_BUS2_2F6957E4EF4559BF7EB">
 		<cim:IdentifiedObject.name>Sub2-BUS2</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>Sub2-BUS2</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB2_VLevel_220KV_EF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB2_VLevel_220KV_EF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
 	</cim:BusbarSection>	
 	   <cim:Terminal rdf:ID="_BUS2C5712A0D2F431594B0638457202CBC">
@@ -441,7 +441,7 @@
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Breaker B2</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>B2</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB2_VLevel_220KV_EF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB2_VLevel_220KV_EF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
 	</cim:Breaker>	
 	   <cim:Terminal rdf:ID="_B21EC5712A0D2F431594B0638457202CBC">
@@ -472,7 +472,7 @@
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Breaker B3</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>B3</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB2_VLevel_220KV_EF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB2_VLevel_220KV_EF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
 	</cim:Breaker>	
 	   <cim:Terminal rdf:ID="_B31EC5712A0D2F431594B0638457202CBC">
@@ -503,7 +503,7 @@
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Breaker B6</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>B6</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB2_VLevel_220KV_EF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB2_VLevel_220KV_EF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
 	</cim:Breaker>
 	   <cim:Terminal rdf:ID="_B61EC5712A0D2F431594B0638457202CBC">
@@ -533,7 +533,7 @@
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Disconnector S3</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>S3</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB2_VLevel_220KV_EF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB2_VLevel_220KV_EF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
 	</cim:Disconnector>
 	   <cim:Terminal rdf:ID="_S31EC5712A0D2F431594B0638457202CBC">
@@ -553,7 +553,7 @@
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Disconnector S4</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>S4</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB2_VLevel_220KV_EF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB2_VLevel_220KV_EF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
 	</cim:Disconnector>
 	   <cim:Terminal rdf:ID="_S41EC5712A0D2F431594B0638457202CBC">
@@ -573,7 +573,7 @@
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Disconnector S9</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>S9</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB2_VLevel_220KV_EF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB2_VLevel_220KV_EF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
 	</cim:Disconnector>
 	   <cim:Terminal rdf:ID="_S91EC5712A0D2F431594B0638457202CBC">
@@ -593,7 +593,7 @@
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Disconnector S10</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>S10</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB2_VLevel_220KV_EF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB2_VLevel_220KV_EF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
 	</cim:Disconnector>
 	   <cim:Terminal rdf:ID="_S101EC5712A0D2F431594B0638457202CBC">
@@ -613,7 +613,7 @@
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Disconnector S17</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>S17</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB2_VLevel_220KV_EF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB2_VLevel_220KV_EF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
 	</cim:Disconnector>
 	   <cim:Terminal rdf:ID="_S171EC5712A0D2F431594B0638457202CBC">
@@ -633,7 +633,7 @@
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Disconnector S18</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>S18</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB2_VLevel_220KV_EF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB2_VLevel_220KV_EF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
 	</cim:Disconnector>	
 	   <cim:Terminal rdf:ID="_S181EC5712A0D2F431594B0638457202CBC">
@@ -678,7 +678,7 @@
 		<cim:GeneratingUnit.minOperatingP>10</cim:GeneratingUnit.minOperatingP>
 		<cim:IdentifiedObject.name>GT2</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>GT2</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUBSTATION3"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUBSTATION3"/>
 	</cim:ThermalGeneratingUnit>	
 	   <cim:SynchronousMachine rdf:ID="_ID_SUB2_ShynchMachine_Gen2">
 		<cim:SynchronousMachine.maxQ>800</cim:SynchronousMachine.maxQ>
@@ -691,7 +691,7 @@
 		<cim:IdentifiedObject.aliasName>GEN_2</cim:IdentifiedObject.aliasName>
 		<cim:SynchronousMachine.MemberOf_GeneratingUnit rdf:resource="#_ID_SUB3_GenUnit2"/>
 		<cim:RegulatingCondEq.RegulatingControl rdf:resource="#_8230B69E80F9402FA09E7D3D8B547CB7"/>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB3_VLevel_15KV_EEF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB3_VLevel_15KV_EEF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_15KV"/>
 	   </cim:SynchronousMachine>
 	   <cim:Terminal rdf:ID="_GEN2C5712A0D2F431594B0638457202CBC">
@@ -736,7 +736,7 @@
 	<cim:PowerTransformer rdf:ID="_ID_PowerXfr_TR2">
 		<cim:IdentifiedObject.name>TR2</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>TR2</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUBSTATION3"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUBSTATION3"/>
 	</cim:PowerTransformer>	
 	   <cim:TransformerWinding rdf:ID="_ID_TR2_W1">
 		<cim:TransformerWinding.g>0</cim:TransformerWinding.g>
@@ -792,7 +792,7 @@
 	<cim:BusbarSection rdf:ID="_ID_SUB3_BUS3_2F6957E4EF4559BF7EB">
 		<cim:IdentifiedObject.name>Sub3-BUS3</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>Sub3-BUS3</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB3_VLevel_220KV_EF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB3_VLevel_220KV_EF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
 	</cim:BusbarSection>	
 	   <cim:Terminal rdf:ID="_BUS3C5712A0D2F431594B0638457202CBC">
@@ -812,7 +812,7 @@
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Breaker B5</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>B5</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB3_VLevel_220KV_EF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB3_VLevel_220KV_EF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
 	</cim:Breaker>	
 	   <cim:Terminal rdf:ID="_B51EC5712A0D2F431594B0638457202CBC">
@@ -843,7 +843,7 @@
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Breaker B7</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>B7</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB3_VLevel_220KV_EF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB3_VLevel_220KV_EF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
 	</cim:Breaker>	
 	   <cim:Terminal rdf:ID="_B71EC5712A0D2F431594B0638457202CBC">
@@ -873,7 +873,7 @@
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Disconnector S7</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>S7</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB3_VLevel_220KV_EF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB3_VLevel_220KV_EF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
 	</cim:Disconnector>	
 	   <cim:Terminal rdf:ID="_S71EC5712A0D2F431594B0638457202CBC">
@@ -893,7 +893,7 @@
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Disconnector S8</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>S8</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB3_VLevel_220KV_EF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB3_VLevel_220KV_EF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
 	</cim:Disconnector>	
 	   <cim:Terminal rdf:ID="_S81EC5712A0D2F431594B0638457202CBC">
@@ -913,7 +913,7 @@
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Disconnector S11</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>S11</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB3_VLevel_220KV_EF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB3_VLevel_220KV_EF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
 	</cim:Disconnector>	
 	   <cim:Terminal rdf:ID="_S111EC5712A0D2F431594B0638457202CBC">
@@ -933,7 +933,7 @@
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Disconnector S12</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>S12</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB3_VLevel_220KV_EF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB3_VLevel_220KV_EF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
 	</cim:Disconnector>	
 	   <cim:Terminal rdf:ID="_S121EC5712A0D2F431594B0638457202CBC">
@@ -953,7 +953,7 @@
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Disconnector S13</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>S13</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB3_VLevel_220KV_EF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB3_VLevel_220KV_EF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
 	</cim:Disconnector>	
 	   <cim:Terminal rdf:ID="_S131EC5712A0D2F431594B0638457202CBC">
@@ -973,7 +973,7 @@
 		<cim:Switch.normalOpen>false</cim:Switch.normalOpen>
 		<cim:IdentifiedObject.name>Disconnector S14</cim:IdentifiedObject.name>
 		<cim:IdentifiedObject.aliasName>S14</cim:IdentifiedObject.aliasName>
-		<cim:Equipment.MemberOf_EquipmentContainer rdf:resource="#_ID_SUB3_VLevel_15KV_EEF4559BF7EB"/>
+		<cim:Equipment.EquipmentContainer rdf:resource="#_ID_SUB3_VLevel_15KV_EEF4559BF7EB"/>
 		<cim:ConductingEquipment.BaseVoltage rdf:resource="#_ID_BaseVoltage_220KV"/>
 	</cim:Disconnector>	
 	   <cim:Terminal rdf:ID="_S141EC5712A0D2F431594B0638457202CBC">

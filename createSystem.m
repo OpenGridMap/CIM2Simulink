@@ -6,7 +6,7 @@
 %         Last Name:  Krop
 %         E-Mail:     b.krop@gmx.de
 %
-% Last time updated:  04. March 2016
+% Last time updated:  06. March 2016
 
 function createSystem()
 
@@ -503,7 +503,7 @@ function createACLineSegment()
     % Update g_cBlocks and g_cTemporaryBlocks.
     g_cBlocks{l_iI, 4} = g_cBlocks{l_iI, 4} + 1;
     g_cBlocks = vertcat(g_cBlocks, {g_cObjects{g_iIterator}, g_sName, l_sParent, 0});
-    if(strcmp(l_sParent, ''))
+    if(strcmp(l_sParent, g_sTitle))
         g_cTemporaryBlocks = vertcat(g_cTemporaryBlocks, {g_cObjects{g_iIterator}, g_sName, l_sParent});
     end
     
@@ -1814,7 +1814,7 @@ end % End of function 'createDisconnector'.
 function createEnergySource()
 
     % Use global variables.
-    global g_iHeight g_iIterator g_iOffset g_iWidth g_cAttributes g_cBlocks g_cObjects g_cTemporaryBlocks;
+    global g_iHeight g_iIterator g_iOffset g_iWidth g_cAttributes g_cBlocks g_cObjects g_cTemporaryBlocks g_sTitle;
     
     % Attributes of...
     % ...IdentifiedObject:
@@ -1941,7 +1941,7 @@ function createEnergySource()
     % Update g_cBlocks and g_cTemporaryBlocks.
     g_cBlocks{l_iI, 4} = g_cBlocks{l_iI, 4} + 1;
     g_cBlocks = vertcat(g_cBlocks, {g_cObjects{g_iIterator}, g_sName, l_sParent, 0});
-    if(strcmp(l_sParent, ''))
+    if(strcmp(l_sParent, g_sTitle))
         g_cTemporaryBlocks = vertcat(g_cTemporaryBlocks, {g_cObjects{g_iIterator}, g_sName, l_sParent});
     end
     
@@ -2696,170 +2696,118 @@ end % End of function 'createPowerSystemResource'.
 function createPowerTransformer()
 
     % Use global variables.
-    global g_iIterator g_iHeight g_iWidth g_iOffset g_cAttributes g_cObjects g_cBlocks;
+    global g_iHeight g_iIterator g_iOffset g_iWidth g_cAttributes g_cBlocks g_cObjects g_cTemporaryBlocks g_sTitle;
+    
+    % Attributes of...
+    % ...IdentifiedObject:
+    global g_sDescription g_sName;
+    % ...Equipment:
+    global g_sEquipmentContainer;
     
     parseAttributes();
+    createConductingEquipment();
     
     % Identify attributes.
-    for l_iI = 1:size(g_cAttributes)
-        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:IdentifiedObject.aliasName');
+    for l_iI = 1 : size(g_cAttributes)
+        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:PowerTransformer.bmagSat');
         if(size(l_cFind) > 0)
-            if(exist('l_sName', 'var'))
-                l_sName = strcat(l_sName, ' (', g_cAttributes{l_iI}(l_cFind(1) + 31:l_cFind(2) - 3), ')');
-            else
-                l_sName = strcat('(', g_cAttributes{l_iI}(l_cFind(1) + 31:l_cFind(2) - 3), ')');
-            end
+            % @Note:
+            % Currently not used.
+            %l_sBmagSat = g_cAttributes{l_iI}(l_cFind(1) + 29 : l_cFind(2) - 3);
             continue;
         end
-        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:IdentifiedObject.name');
+        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:PowerTransformer.HeatExchanger');
         if(size(l_cFind) > 0)
-            if(exist('l_sName', 'var'))
-                l_sName = strcat(g_cAttributes{l_iI}(l_cFind(1) + 26:l_cFind(2) - 3), ' ', l_sName);
-            else
-                l_sName = g_cAttributes{l_iI}(l_cFind(1) + 26:l_cFind(2) - 3);
-            end
+            % @Note:
+            % Currently not used.
+            %l_sHeatExchanger = g_cAttributes{l_iI}(l_cFind(1) + 35 : l_cFind(2) - 3);
             continue;
         end
-        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:PowerSystemResource.PSRType');
+        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:PowerTransformer.magBaseU');
         if(size(l_cFind) > 0)
-            l_sPSRType = g_cAttributes{l_iI}(l_cFind(1) + 47:end - 3);
+            % @Note:
+            % Currently not used.
+            %l_sMagBaseU = g_cAttributes{l_iI}(l_cFind(1) + 30 : l_cFind(2) - 3);
             continue;
         end
-        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:Equipment.aggregate');
+        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:PowerTransformer.magSatFlux');
         if(size(l_cFind) > 0)
-            l_sAggregate = strcat('Boolean.', g_cAttributes{l_iI}(l_cFind(1) + 24:l_cFind(2) - 3));
+            % @Note:
+            % Currently not used.
+            %l_sMagSatFlux = g_cAttributes{l_iI}(l_cFind(1) + 32 : l_cFind(2) - 3);
             continue;
         end
-        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:Equipment.MemberOf_EquipmentContainer');
+        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:PowerTransformer.PowerTransformerEnd');
         if(size(l_cFind) > 0)
-            l_sMemberOf_EquipmentContainer = g_cAttributes{l_iI}(l_cFind(1) + 57:end - 3);
+            % @Note:
+            % Currently not used.
+            %l_sPowerTransformerEnd = g_cAttributes{l_iI}(l_cFind(1) + 41 : l_cFind(2) - 3);
             continue;
         end
-        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:Equipment.normallyInService');
+        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:PowerTransformer.PowerTransformerInfo');
         if(size(l_cFind) > 0)
-            l_sNormallyInService = strcat('Boolean.', g_cAttributes{l_iI}(l_cFind(1) + 32:l_cFind(2) - 3));
+            % @Note:
+            % Currently not used.
+            %l_sPowerTransformerInfo = g_cAttributes{l_iI}(l_cFind(1) + 42 : l_cFind(2) - 3);
             continue;
         end
-        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:ConductingEquipment.BaseVoltage');
+        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:PowerTransformer.TransformerTanks');
         if(size(l_cFind) > 0)
-            l_sBaseVoltage = g_cAttributes{l_iI}(l_cFind(1) + 51:end - 3);
+            % @Note:
+            % Currently not used.
+            %l_sTransformerTanks = g_cAttributes{l_iI}(l_cFind(1) + 38 : l_cFind(2) - 3);
+            continue;
+        end
+        l_cFind = strfind(g_cAttributes{l_iI}, 'cim:PowerTransformer.TransformerWindings');
+        if(size(l_cFind) > 0)
+            % @Note:
+            % Currently not used:
+            %l_sTransformerWindings = g_cAttributes{l_iI}(l_cFind(1) + 41 : l_cFind(2) - 3);
             continue;
         end
         l_cFind = strfind(g_cAttributes{l_iI}, 'cim:PowerTransformer.vectorGroup');
         if(size(l_cFind) > 0)
-            l_sVectorGroup = g_cAttributes{l_iI}(l_cFind(1) + 33:l_cFind(2) - 3);
+            % @Note:
+            % Currently not used.
+            %l_sVectorGroup = g_cAttributes{l_iI}(l_cFind(1) + 33 : l_cFind(2) - 3);
             continue;
         end
-        % Could not identify the attribute.
-        warning('Could not identify attribute for PowerTransformer! (RDF-ID: %s)', g_cObjects{g_iIterator,2});
     end % End of for.
     
-    % Create this PowerTransformer.
-    
-    % Every PowerTransformer must be contained by an EquipmentContainer. If
-    % Equipment.MemberOf_EquipmentContainer does not exist, this
-    % PowerTransformer cannot be created.
-    if(~exist('l_sMemberOf_EquipmentContainer', 'var'))
-        warning('Could not create PowerTransformer, because EquipmentContainer is missing! (RDF-ID: %s)', g_cObjects{g_iIterator,2});
-        return;
-    end
-    for l_iI = 1:size(g_cBlocks)
-        if(strcmp(g_cBlocks{l_iI, 1}, l_sMemberOf_EquipmentContainer))
-            l_sParent = strcat(g_cBlocks{l_iI, 3}, '/', g_cBlocks{l_iI, 2});
-            break;
+    % @Equipment.EquipmentContainer:
+    % Every Equipment must be contained by a EquipmentContainer. If
+    % Equipment.EquipmentContainer doesn't exist, this Equipment will be
+    % created temporarily at the top level of the system.
+    if(~strcmp(g_sEquipmentContainer, ''))
+        for l_iI = 1 : size(g_cBlocks)
+            if(strcmp(g_sEquipmentContainer, g_cBlocks{l_iI}))
+                l_sParent = strcat(g_cBlocks{l_iI, 3}, '/', g_cBlocks{l_iI, 2});
+                break;
+            end
         end
     end
     if(~exist('l_sParent', 'var'))
-        warning('Could not create PowerTransformer, because could not find EquipmentContainer, belonging to RDF-Resource! (RDF-ID: %s)', g_cObjects{g_iIterator,2});
-        return;
+        l_sParent = g_sTitle;
+        l_iI = 1;
     end
-    % The name of the block in following format: IdentifiedObject.name
-    % (IdentifiedObject.aliasName). If both variables don't exist, it is
-    % the name of the class, followed by the value of 'g_iIterator'.
-    if(~exist('l_sName', 'var'))
-        l_sName = strcat('PowerTransformer', g_iIterator);
-    end
-    % PowerTransformer.vectorGroup indicates the vector group of this
-    % PowerTransformer.
-    if(exist('l_sVectorGroup', 'var'))
-        l_sName = strcat(l_sName, ' [', l_sVectorGroup, ']');
-    end
-    % Now, this PowerTransformer can be created. Because it contains
-    % severel Blocks, it is a Subsystem.
+    
+    % Create this PowerTransformer.
     l_cPos = getPositionIndex(g_cBlocks{l_iI, 4});
     l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
     l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
     l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
-    add_block('built-in/Subsystem', strcat(l_sParent, '/', l_sName), 'Position', l_aPosition);
-    % The PSRType, this PowerTransformer is connected with. It is assumed,
-    % that the PSRType already exists, if PowerSystemResource.PSRType
-    % exists.
-    if(exist('l_sPSRType', 'var'))
-        for l_iJ = 1:size(g_cBlocks)
-            if(strcmp(g_cBlocks{l_iJ, 1}, l_sPSRType))
-                l_sPSRT = strcat(g_cBlocks{l_iJ, 3}, g_cBlocks{l_iJ, 2});
-                break;
-            end
-        end
-        if(exist('l_sPSRT', 'var'))
-            % TODO: Implement creation of PSRType.
-            % TODO: Connect the found PSRType with this PowerTransformer.
-            warning('Connections from PowerTransformers to PSRTypes are currently not implemented!');
-        else
-            warning('Could not find PSRType, belonging to RDF-Resource, for PowerTransformer! (RDF-ID: %s)', g_cObjects{g_iIterator, 2});
-        end
-    end
-    % The Equipment.aggregate indicates, whether this PowerTransformer is
-    % modeled together as an aggregate.
-    l_cPos = getPositionIndex(0);
-    l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
-    l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
-    l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
-    add_block('simulink/Sources/Enumerated Constant', strcat(l_sParent, '/', l_sName, '/aggregate'), 'Position', l_aPosition);
-    if(exist('l_sAggregate', 'var'))
-        set_param(strcat(l_sParent, '/', l_sName, '/aggregate'), 'OutDataTypeStr', 'Enum: Boolean', 'Value', l_sAggregate);
-    else
-        set_param(strcat(l_sParent, '/', l_sName, '/aggregate'), 'OutDataTypeStr', 'Enum: Boolean', 'Value', 'Boolean.false');
-    end
-    % The Equipment.normallyInService indicates, whether this
-    % PowerTransformer is normally in service.
-    l_cPos = getPositionIndex(1);
-    l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
-    l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
-    l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
-    add_block('simulink/Sources/Enumerated Constant', strcat(l_sParent, '/', l_sName, '/normallyInService'), 'Position', l_aPosition);
-    if(exist('l_sNormallyInService', 'var'))
-        set_param(strcat(l_sParent, '/', l_sName, '/normallyInService'), 'OutDataTypeStr', 'Enum: Boolean', 'Value', l_sNormallyInService);
-    else
-        set_param(strcat(l_sParent, '/', l_sName, '/normallyInService'), 'OutDataTypeStr', 'Enum: Boolean', 'Value', 'Boolean.true');
-    end
-    % The BaseVoltage for this PowerTransformer. If
-    % ConductingEquipment.BaseVoltage does not exist, a default BaseVoltage
-    % will be created.
-    l_cPos = getPositionIndex(2);
-    l_iLeft = l_cPos{1, 1} * (g_iOffset + g_iWidth) + g_iOffset;
-    l_iTop = l_cPos{1, 2} * (g_iOffset + g_iHeight) + g_iOffset;
-    l_aPosition = [l_iLeft, l_iTop, l_iLeft + g_iWidth, l_iTop + g_iHeight];
-    if(exist('l_sBaseVoltage', 'var'))
-        for l_iJ = 1:size(g_cBlocks)
-            if(strcmp(g_cBlocks{l_iJ, 1}, l_sBaseVoltage))
-                l_sBV = strcat(g_cBlocks{l_iJ, 3}, '/', g_cBlocks{l_iJ, 2});
-                break;
-            end
-        end
-        if(exist('l_sBV', 'var'))
-            add_block(l_sBV, strcat(l_sParent, '/', l_sName, '/', g_cBlocks{l_iJ, 2}), 'Position', l_aPosition);
-        else
-            add_block('fl_lib/Electrical/Electrical Sources/AC Voltage Source', strcat(l_sParent, '/', l_sName, '/BaseVoltage'), 'Position', l_aPosition);
-        end
-    else
-        add_block('fl_lib/Electrical/Electrical Sources/AC Voltage Source', strcat(l_sParent, '/', l_sName, '/BaseVoltage'), 'Position', l_aPosition);
+    add_block('powerlib/Elements/Three-Phase Transformer (Two Windings)', strcat(l_sParent, '/', g_sName), 'Position', l_aPosition);
+    set_param(strcat(l_sParent, '/', g_sName), 'Description', g_sDescription);
+    
+    % Update g_cBlocks and g_cTemporaryBlocks.
+    g_cBlocks{l_iI, 4} = g_cBlocks{l_iI, 4} + 1;
+    g_cBlocks = vertcat(g_cBlocks, {g_cObjects{g_iIterator}, g_sName, l_sParent, 0});
+    if(strcmp(l_sParent, g_sTitle))
+        g_cTemporaryBlocks = vertcat(g_cTemporaryBlocks, {g_cObjects{g_iIterator}, g_sName, l_sParent});
     end
     
     % Clean up everything, that is not needed anymore.
-    g_cBlocks{l_iI, 4} = g_cBlocks{l_iI, 4} + 1;
-    g_cBlocks = cat(1, g_cBlocks, {g_cObjects{g_iIterator, 2}, l_sName, l_sParent, 3});
-    clearvars -except g_iIterator g_iHeight g_iWidth g_iOffset g_cObjects g_cBlocks;
+    clearvars -global -except g_iHeight g_iIterator g_iOffset g_iWidth g_dSystem g_sTitle g_cBlocks g_cObjects g_cTemporaryBlocks;
 
 end % End of function 'createPowerTransformer'.
 
